@@ -1,0 +1,277 @@
+<mat-card
+  class="w-full max-w-7xl mx-auto bg-brand-surface shadow-lg rounded-2xl p-6 md:p-8 border border-slate-100"
+>
+  <!-- Header row: title, counts, controls -->
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <!-- Left: title + counters -->
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">Tasks</h1>
+      <p class="text-sm text-slate-500">
+        {{ activeCount }} active • {{ completedCount }} completed
+      </p>
+    </div>
+
+    <!-- Right: filters + Add button in one pill -->
+    <div class="flex-1 flex justify-end">
+      <div
+        class="flex flex-wrap items-center gap-3 w-full max-w-4xl
+              rounded-full bg-white shadow-sm border border-slate-200
+              px-4 py-2"
+      >
+        <!-- Search -->
+        <div class="flex items-center gap-2 flex-1 min-w-[180px]">
+          <span class="text-xs font-medium text-slate-500">Search</span>
+          <input
+            type="text"
+            class="flex-1 bg-transparent border-none outline-none
+                  text-sm text-slate-900 placeholder-slate-400"
+            [value]="searchControl.value"
+            (input)="searchControl.setValue($any($event.target).value)"
+            placeholder="Title or description"
+          />
+        </div>
+
+        <!-- vertical divider -->
+        <span class="hidden md:block h-6 w-px bg-slate-200"></span>
+
+        <!-- Status -->
+        <div class="flex items-center gap-2 min-w-[120px]">
+          <span class="text-xs font-medium text-slate-500">Status</span>
+          <select
+            class="bg-transparent border-none text-sm text-slate-700
+                  focus:outline-none"
+            [value]="statusFilter()"
+            (change)="statusFilter.set($any($event.target).value)"
+          >
+            <option value="all">All</option>
+            <option value="todo">To do</option>
+            <option value="in_progress">In progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+
+        <!-- Priority -->
+        <div class="flex items-center gap-2 min-w-[130px]">
+          <span class="text-xs font-medium text-slate-500">Priority</span>
+          <select
+            class="bg-transparent border-none text-sm text-slate-700
+                  focus:outline-none"
+            [value]="priorityFilter()"
+            (change)="onPriorityChange($any($event.target).value)"
+          >
+            <option value="all">All</option>
+            <option value="0">High</option>
+            <option value="1">Normal</option>
+            <option value="2">Low</option>
+          </select>
+
+        </div>
+
+        <!-- Sort -->
+        <div class="flex items-center gap-2 min-w-[150px]">
+          <span class="text-xs font-medium text-slate-500">Sort by</span>
+          <select
+            class="bg-transparent border-none text-sm text-slate-700
+                  focus:outline-none"
+            [value]="sortBy()"
+            (change)="sortBy.set($any($event.target).value)"
+          >
+            <option value="dueDate">Due date</option>
+            <option value="createdAt">Created</option>
+            <option value="priority">Priority</option>
+          </select>
+
+          <!-- sort direction button -->
+          <button
+            type="button"
+            class="flex h-7 w-7 items-center justify-center rounded-full
+                  border border-slate-200 text-slate-600
+                  hover:bg-slate-50 hover:border-slate-300
+                  transition"
+            (click)="sortDir.set(sortDir() === 'asc' ? 'desc' : 'asc')"
+            [matTooltip]="sortDir() === 'asc' ? 'Ascending' : 'Descending'"
+          >
+            <mat-icon class="!text-base">
+              {{ sortDir() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+            </mat-icon>
+          </button>
+        </div>
+
+        <!-- Add Task button -->
+        <button
+          type="button"
+          (click)="openTaskDialog()"
+          class="ml-auto inline-flex items-center gap-2 rounded-full
+                bg-sky-600 px-4 py-1.5 text-sm font-semibold text-white
+                shadow-sm hover:bg-sky-500 hover:shadow-md
+                focus-visible:outline-none focus-visible:ring-2
+                focus-visible:ring-offset-2 focus-visible:ring-sky-500
+                transition"
+        >
+          <mat-icon class="!text-base">add</mat-icon>
+          Add Task
+        </button>
+      </div>
+        <!-- NEW: toggle List / Board view -->
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2
+                text-sm font-medium text-slate-700 bg-white
+                hover:bg-slate-50 hover:border-slate-400
+                focus-visible:outline-none focus-visible:ring-2
+                focus-visible:ring-offset-2 focus-visible:ring-slate-400
+                transition"
+          (click)="toggleView()"
+        >
+          <mat-icon class="text-base">
+            {{ viewMode() === 'list' ? 'view_kanban' : 'view_agenda' }}
+          </mat-icon>
+          {{ viewMode() === 'list' ? 'Board view' : 'List view' }}
+        </button>
+    </div>
+
+  </div>
+
+  <!-- Tasks grid -->
+  <div
+    *ngIf="filteredTasks().length; else noTasks"
+    class="grid gap-4 mb-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+  >
+    <div
+      *ngFor="let task of filteredTasks()"
+      class="flex flex-col justify-between h-full px-4 py-3 rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow group"
+    >
+      <!-- Top: checkbox + content -->
+      <div class="flex items-start gap-3">
+        <!-- Checkbox -->
+        <mat-checkbox
+          [checked]="task.completed"
+          (change)="toggleComplete(task)"
+          class="mt-1 shrink-0"
+        ></mat-checkbox>
+
+        <!-- Main content -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-3">
+            <!-- Title -->
+            <p
+              class="text-sm md:text-base truncate"
+              [ngClass]="{
+                'text-slate-900 font-medium': !task.completed,
+                'text-slate-400 line-through': task.completed
+              }"
+            >
+              {{ task.title }}
+            </p>
+
+            <!-- Priority badge -->
+            <span
+              class="text-[11px] px-2 py-0.5 rounded-full border whitespace-nowrap"
+              [ngClass]="{
+                'border-rose-300 text-rose-700 bg-rose-50': task.priority === 0,
+                'border-sky-300 text-sky-700 bg-sky-50': task.priority === 1,
+                'border-emerald-300 text-emerald-700 bg-emerald-50': task.priority === 2
+              }"
+            >
+              {{ task.priority === 0 ? 'High' : task.priority === 1 ? 'Normal' : 'Low' }}
+            </span>
+
+          </div>
+
+          <!-- Description -->
+          <p
+            *ngIf="task.description"
+            class="text-xs text-slate-500 mt-0.5 line-clamp-2"
+          >
+            {{ task.description }}
+          </p>
+
+          <!-- Meta row -->
+          <div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+            <!-- Jira-style due date pill -->
+            <span *ngIf="task.dueDate" class="flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-slate-400"></span>
+              <span
+                class="px-2 py-0.5 rounded-full text-[11px] font-medium border"
+                [ngClass]="{
+                  'border-rose-300 bg-rose-50 text-rose-700': dueState(task) === 'overdue',
+                  'border-amber-300 bg-amber-50 text-amber-700': dueState(task) === 'soon',
+                  'border-slate-300 bg-slate-50 text-slate-600': dueState(task) === 'future'
+                }"
+              >
+                {{ task.dueDate | date: 'MMM d, y' }}
+              </span>
+            </span>
+
+            <!-- Status pill -->
+            <span class="flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-slate-400"></span>
+              <span
+                class="px-2 py-0.5 rounded-full border"
+                [ngClass]="{
+                  'border-slate-300 bg-slate-50 text-slate-700': task.status === 'todo',
+                  'border-amber-300 bg-amber-50 text-amber-700': task.status === 'in_progress',
+                  'border-emerald-300 bg-emerald-50 text-emerald-700': task.status === 'done'
+                }"
+              >
+                {{
+                  task.status === 'todo'
+                    ? 'To do'
+                    : task.status === 'in_progress'
+                    ? 'In progress'
+                    : 'Done'
+                }}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom actions -->
+      <div class="mt-4 flex gap-3">
+        <!-- Edit button -->
+        <button
+          type="button"
+          (click)="edit(task)"
+          class="inline-flex items-center rounded-full bg-sky-600 px-4 py-1.5
+                text-xs font-semibold text-white shadow-sm
+                hover:bg-sky-500 hover:shadow-md
+                focus-visible:outline-none focus-visible:ring-2
+                focus-visible:ring-offset-2 focus-visible:ring-sky-500
+                transition"
+        >
+          Edit
+        </button>
+
+        <!-- Remove button -->
+        <button
+          type="button"
+          (click)="remove(task)"
+          class="inline-flex items-center rounded-full border border-rose-200
+                bg-rose-50 px-4 py-1.5 text-xs font-semibold text-rose-700
+                hover:bg-rose-100 hover:border-rose-300
+                focus-visible:outline-none focus-visible:ring-2
+                focus-visible:ring-offset-2 focus-visible:ring-rose-400
+                transition"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #boardView>
+    <app-tasks-board></app-tasks-board>
+  </ng-template>
+
+  <ng-template #noTasks>
+    <div
+      class="mb-6 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-2xl py-8 px-4"
+    >
+      <p class="text-slate-600 font-medium mb-1">You’re all caught up 🎉</p>
+      <p class="text-sm text-slate-500">
+        Add a new task below to get started.
+      </p>
+    </div>
+  </ng-template>
+</mat-card>

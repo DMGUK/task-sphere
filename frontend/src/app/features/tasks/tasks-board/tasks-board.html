@@ -1,0 +1,74 @@
+<!-- src/app/features/tasks/tasks-board/tasks-board.html -->
+<div class="grid gap-4 md:grid-cols-3">
+  <div
+    *ngFor="let col of columnDefs"
+    class="bg-slate-50 rounded-2xl p-3 flex flex-col min-h-[260px]"
+  >
+    <!-- Column header -->
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <h2 class="text-sm font-semibold text-slate-800">{{ col.label }}</h2>
+        <span
+          class="inline-flex items-center justify-center rounded-full
+                 bg-slate-100 text-[11px] px-2 py-0.5 text-slate-600"
+        >
+          {{ columns[col.key].length }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Drop area -->
+    <div
+      cdkDropList
+      [cdkDropListData]="columns[col.key]"
+      class="flex-1 space-y-3"
+      (cdkDropListDropped)="drop($event, col.key)"
+    >
+      <div
+        *ngFor="let task of columns[col.key]"
+        cdkDrag
+        class="bg-white rounded-xl border border-slate-200 shadow-sm
+               px-3 py-2 cursor-move hover:shadow-md transition-shadow"
+      >
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <p class="text-sm font-medium text-slate-900 truncate">
+            {{ task.title }}
+          </p>
+          <!-- simple badge re-use from list -->
+          <span
+            class="text-[11px] px-2 py-0.5 rounded-full border whitespace-nowrap"
+            [ngClass]="{
+              'border-rose-300 text-rose-700 bg-rose-50': task.priority === 0,
+              'border-sky-300 text-sky-700 bg-sky-50': task.priority === 1,
+              'border-emerald-300 text-emerald-700 bg-emerald-50': task.priority === 2
+            }"
+          >
+            {{ task.priority === 0 ? 'High' : task.priority === 1 ? 'Normal' : 'Low' }}
+          </span>
+        </div>
+
+        <p
+          *ngIf="task.description"
+          class="text-xs text-slate-500 mb-1 line-clamp-2"
+        >
+          {{ task.description }}
+        </p>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-500">
+          <span *ngIf="task.dueDate">
+            {{ task.dueDate | date: 'MMM d, y' }}
+          </span>
+          <span>
+            {{
+              task.status === 'todo'
+                ? 'To do'
+                : task.status === 'in_progress'
+                ? 'In progress'
+                : 'Done'
+            }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

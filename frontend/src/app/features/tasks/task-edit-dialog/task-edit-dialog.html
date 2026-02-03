@@ -1,0 +1,90 @@
+<div class="p-4 md:p-6 w-full max-w-md">
+  <h2 class="text-lg font-semibold text-slate-900 mb-1">
+    {{ data.mode === 'edit' ? 'Edit task' : 'Create task' }}
+  </h2>
+  <p class="text-xs text-slate-500 mb-4">
+    {{
+      data.mode === 'edit'
+        ? 'Update details and press Save to persist changes.'
+        : 'Fill in the details and press Create to add the task.'
+    }}
+  </p>
+
+  <form [formGroup]="form" class="space-y-4">
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Title*</mat-label>
+      <input matInput formControlName="title" />
+      <mat-error *ngIf="form.get('title')?.hasError('required')">
+        Title is required
+      </mat-error>
+      <mat-error *ngIf="form.get('title')?.hasError('minlength')">
+        At least 2 characters
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Description</mat-label>
+      <textarea
+        matInput
+        rows="3"
+        formControlName="description"
+      ></textarea>
+    </mat-form-field>
+
+    <div class="flex flex-col md:flex-row gap-4">
+      <mat-form-field appearance="fill" class="flex-1">
+        <mat-label>Due date</mat-label>
+        <input
+          matInput
+          [matDatepicker]="picker"
+          formControlName="dueDate"
+          [min]="minDate"
+        />
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+
+        <!-- Optional: show error when date is before min -->
+        <mat-error *ngIf="form.get('dueDate')?.hasError('matDatepickerMin')">
+          Due date cannot be in the past (earliest is tomorrow)
+        </mat-error>
+      </mat-form-field>
+
+
+<!-- Priority filter -->
+      <mat-form-field appearance="fill" class="w-32">
+        <mat-label>Priority</mat-label>
+        <mat-select formControlName="priority">
+          <mat-option [value]="0">High</mat-option>
+          <mat-option [value]="1">Normal</mat-option>
+          <mat-option [value]="2">Low</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+
+    </div>
+
+    <mat-form-field appearance="fill" class="w-full">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        <mat-option value="todo">To do</mat-option>
+        <mat-option value="in_progress">In progress</mat-option>
+        <mat-option value="done">Done</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <button mat-button type="button" (click)="cancel()">
+        Cancel
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        [disabled]="form.invalid"
+        (click)="save()"
+      >
+        {{ data.mode === 'edit' ? 'Save' : 'Create' }}
+      </button>
+    </div>
+  </form>
+</div>

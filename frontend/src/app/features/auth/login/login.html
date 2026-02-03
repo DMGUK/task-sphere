@@ -1,0 +1,31 @@
+<div class="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-4">
+    <h2 class="text-xl font-semibold text-slate-800">Login</h2>
+
+    <form (ngSubmit)="submit()" class="space-y-4">
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Email</mat-label>
+        <input matInput [(ngModel)]="email" name="email" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Password</mat-label>
+        <input matInput [(ngModel)]="password" name="password" type="password" required />
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" class="w-full" type="submit">
+        Login
+      </button>
+    </form>
+
+    <p class="mt-4 text-sm text-slate-500">
+      Don't have an account?
+      <a
+        href="/auth/register"
+        class="text-blue-600 hover:underline cursor-pointer">
+        Register
+      </a>
+    </p>
+
+  </div>
+</div>

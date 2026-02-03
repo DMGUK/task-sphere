@@ -1,0 +1,49 @@
+<div class="min-h-screen flex flex-col bg-brand-bg">
+  <!-- Top bar -->
+  <header class="h-14 bg-brand-primary text-slate-50 flex items-center justify-between px-6 shadow-md">
+
+    <div *ngIf="!emailVerified" class="mx-auto max-w-5xl mt-3 px-4">
+      <div class="flex items-center justify-between gap-3 p-3 rounded-xl border bg-amber-50">
+        <div class="text-sm text-amber-900">
+          Your email is not verified. Some features may be limited later.
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button mat-stroked-button color="primary" (click)="resendVerification()" [disabled]="resendLoading">
+            {{ resendLoading ? 'Sending…' : 'Resend verification' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- dev-only: show link if backend returned it -->
+      <div *ngIf="devVerifyUrl" class="text-xs text-slate-600 mt-2 break-all">
+        Dev link: {{ devVerifyUrl }}
+      </div>
+    </div>
+
+
+    <div class="flex items-center gap-2">
+      <span class="font-semibold tracking-wide text-lg">TaskSphere</span>
+    </div>
+
+    <nav class="flex items-center gap-4 text-sm">
+      <!-- You already have auth service injected, reuse it -->
+      <ng-container *ngIf="isLoggedIn(); else authLinks">
+        <a mat-button routerLink="/profile">Profile</a>
+        <a mat-button routerLink="/tasks">Tasks</a>
+        <button class="hover:text-white/80 transition-colors" (click)="logout()">Logout</button>
+      </ng-container>
+
+
+      <ng-template #authLinks>
+        <a routerLink="/auth/login" class="hover:text-white/80">Login</a>
+        <a routerLink="/auth/register" class="hover:text-white/80">Register</a>
+      </ng-template>
+    </nav>
+  </header>
+
+  <!-- Content -->
+  <main class="flex-1 px-4 py-8 md:px-8">
+    <router-outlet></router-outlet>
+  </main>
+</div>

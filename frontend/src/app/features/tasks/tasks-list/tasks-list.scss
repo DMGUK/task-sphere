@@ -1,0 +1,56 @@
+.tasks-container {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.task-title {
+  margin-left: 1rem;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.error {
+  color: #d32f2f;
+  margin-bottom: .5rem;
+}
+
+.add-row {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.grow {
+  flex: 1 1 auto;
+}
+
+.filters-bar {
+  .filter-field {
+    .mat-mdc-text-field-wrapper {
+      border-radius: 9999px; // pill shape
+      background: #f9fafb;
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none; // hide extra hint space
+    }
+  }
+
+  .sort-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .add-task-btn {
+    white-space: nowrap;
+  }
+}

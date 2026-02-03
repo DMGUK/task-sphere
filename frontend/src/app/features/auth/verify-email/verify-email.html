@@ -1,0 +1,13 @@
+<div class="max-w-xl mx-auto mt-10 p-6 border rounded-xl">
+  <h2 class="text-xl font-semibold mb-2">Email verification</h2>
+
+  <p class="text-slate-600" *ngIf="loading">Verifying…</p>
+
+  <p class="text-slate-700" *ngIf="!loading">{{ message }}</p>
+
+  <div class="mt-4">
+    <button mat-raised-button color="primary" (click)="goLogin()">
+      Go to login
+    </button>
+  </div>
+</div>

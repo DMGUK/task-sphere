@@ -1,0 +1,120 @@
+<div class="mx-auto max-w-6xl px-4">
+  <!-- Page header (like Tasks) -->
+  <div class="mb-5">
+    <div class="text-2xl font-semibold text-slate-900">Profile</div>
+
+    <div class="mt-1 text-sm text-slate-500" *ngIf="profile">
+      {{ profile.email }}
+      <span class="mx-2">•</span>
+      Joined {{ profile.createdAt | date: 'mediumDate' }}
+    </div>
+  </div>
+
+  <mat-card class="profile-card">
+    <!-- Loading -->
+    <div class="py-6" *ngIf="loading">
+      <div class="flex items-center gap-3">
+        <mat-spinner diameter="28"></mat-spinner>
+        <span class="text-slate-600">Loading profile…</span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="profile-shell">
+      <!-- Header row -->
+      <div class="profile-top">
+        <div class="profile-ident">
+          <div class="avatar">
+            <img *ngIf="avatarSrc; else initialsTpl" [src]="avatarSrc" alt="Avatar" />
+            <ng-template #initialsTpl>
+              <span class="initials">{{ initials }}</span>
+            </ng-template>
+          </div>
+
+          <div class="ident-text">
+            <div class="name-row">
+              <div class="display-name">
+                {{ (form.value?.displayName || '').trim() || 'No display name' }}
+              </div>
+              <span
+                class="badge"
+                [ngClass]="profile?.emailVerifiedAt ? 'badge--ok' : 'badge--warn'"
+              >
+                {{ profile?.emailVerifiedAt ? 'Email verified' : 'Email not verified' }}
+              </span>
+            </div>
+
+            <div class="email">{{ profile?.email }}</div>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <!-- hidden file input -->
+          <input
+            #avatarInput
+            type="file"
+            class="hidden"
+            accept="image/png,image/jpeg,image/webp"
+            (change)="onAvatarSelected($event)"
+          />
+
+          <button
+            mat-stroked-button
+            type="button"
+            class="upload-btn"
+            (click)="avatarInput.click()"
+            [disabled]="uploading"
+          >
+            {{ uploading ? 'Uploading…' : 'Upload avatar' }}
+          </button>
+
+          <div class="upload-hint">Max 2MB • JPG/PNG/WEBP</div>
+        </div>
+      </div>
+
+      <mat-divider class="divider"></mat-divider>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="save()" class="profile-form">
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field pretty-field">
+            <mat-label>Display name</mat-label>
+            <input matInput formControlName="displayName" placeholder="e.g. Dmytro" />
+            <mat-hint>2–40 characters (optional)</mat-hint>
+
+            <mat-error *ngIf="form.get('displayName')?.hasError('minlength')">
+              Minimum 2 characters
+            </mat-error>
+            <mat-error *ngIf="form.get('displayName')?.hasError('maxlength')">
+              Maximum 40 characters
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            class="pill pill-primary"
+            [disabled]="saving || uploading || form.invalid || !form.dirty"
+          >
+            {{ saving ? 'Saving…' : 'Save changes' }}
+          </button>
+
+          <button
+            mat-stroked-button
+            type="button"
+            class="pill pill-neutral"
+            (click)="load()"
+            [disabled]="saving || uploading"
+          >
+            Reset
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+  </mat-card>
+</div>
