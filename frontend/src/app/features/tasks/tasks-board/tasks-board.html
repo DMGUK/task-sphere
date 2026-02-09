@@ -1,72 +1,152 @@
 <!-- src/app/features/tasks/tasks-board/tasks-board.html -->
-<div class="grid gap-4 md:grid-cols-3">
-  <div
-    *ngFor="let col of columnDefs"
-    class="bg-slate-50 rounded-2xl p-3 flex flex-col min-h-[260px]"
-  >
-    <!-- Column header -->
-    <div class="flex items-center justify-between mb-3">
-      <div class="flex items-center gap-2">
-        <h2 class="text-sm font-semibold text-slate-800">{{ col.label }}</h2>
-        <span
-          class="inline-flex items-center justify-center rounded-full
-                 bg-slate-100 text-[11px] px-2 py-0.5 text-slate-600"
-        >
-          {{ columns[col.key].length }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Drop area -->
+<div class="board-container">
+  <div class="board-columns">
     <div
-      cdkDropList
-      [cdkDropListData]="columns[col.key]"
-      class="flex-1 space-y-3"
-      (cdkDropListDropped)="drop($event, col.key)"
+      *ngFor="let col of columnDefs"
+      class="board-column"
     >
+      <!-- Column header -->
+      <div class="column-header">
+        <div class="column-header-content">
+          <div class="column-title-wrapper">
+            <!-- Status icon -->
+            <div class="status-icon" [ngClass]="'status-icon-' + col.key">
+              <mat-icon class="!text-base">
+                {{ col.key === 'todo' ? 'circle' : col.key === 'in_progress' ? 'autorenew' : 'check_circle' }}
+              </mat-icon>
+            </div>
+            <!-- Column title -->
+            <h2 class="column-title">{{ col.label }}</h2>
+            <!-- Task count badge -->
+            <span class="task-count-badge">
+              {{ columns[col.key].length }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drop area with visual cues -->
       <div
-        *ngFor="let task of columns[col.key]"
-        cdkDrag
-        class="bg-white rounded-xl border border-slate-200 shadow-sm
-               px-3 py-2 cursor-move hover:shadow-md transition-shadow"
+        cdkDropList
+        [cdkDropListData]="columns[col.key]"
+        [id]="col.key"
+        [cdkDropListConnectedTo]="getOtherColumnIds(col.key)"
+        class="drop-zone"
+        (cdkDropListDropped)="drop($event, col.key)"
       >
-        <div class="flex items-center justify-between gap-2 mb-1">
-          <p class="text-sm font-medium text-slate-900 truncate">
-            {{ task.title }}
+        <!-- Empty state -->
+        <div
+          *ngIf="columns[col.key].length === 0"
+          class="empty-column"
+        >
+          <mat-icon class="empty-icon">{{ col.key === 'done' ? 'task_alt' : 'add_task' }}</mat-icon>
+          <p class="empty-text">
+            {{ col.key === 'done' ? 'No completed tasks' : 'Drop tasks here' }}
           </p>
-          <!-- simple badge re-use from list -->
-          <span
-            class="text-[11px] px-2 py-0.5 rounded-full border whitespace-nowrap"
-            [ngClass]="{
-              'border-rose-300 text-rose-700 bg-rose-50': task.priority === 0,
-              'border-sky-300 text-sky-700 bg-sky-50': task.priority === 1,
-              'border-emerald-300 text-emerald-700 bg-emerald-50': task.priority === 2
-            }"
-          >
-            {{ task.priority === 0 ? 'High' : task.priority === 1 ? 'Normal' : 'Low' }}
-          </span>
         </div>
 
-        <p
-          *ngIf="task.description"
-          class="text-xs text-slate-500 mb-1 line-clamp-2"
+        <!-- Task cards -->
+        <div
+          *ngFor="let task of columns[col.key]; trackBy: trackByTaskId"
+          cdkDrag
+          class="task-card"
+          [class.task-completed]="task.completed"
         >
-          {{ task.description }}
-        </p>
+          <!-- Drag handle indicator -->
+          <div class="drag-handle" cdkDragHandle>
+            <mat-icon class="!text-sm">drag_indicator</mat-icon>
+          </div>
 
-        <div class="flex items-center justify-between text-[11px] text-slate-500">
-          <span *ngIf="task.dueDate">
-            {{ task.dueDate | date: 'MMM d, y' }}
-          </span>
-          <span>
-            {{
-              task.status === 'todo'
-                ? 'To do'
-                : task.status === 'in_progress'
-                ? 'In progress'
-                : 'Done'
-            }}
-          </span>
+          <!-- Task content -->
+          <div class="task-content">
+            <!-- Title and priority -->
+            <div class="task-header">
+              <p class="task-title" [class.completed-text]="task.completed">
+                {{ task.title }}
+              </p>
+              <!-- Priority badge -->
+              <span
+                class="priority-badge"
+                [ngClass]="{
+                  'priority-high': task.priority === 0,
+                  'priority-normal': task.priority === 1,
+                  'priority-low': task.priority === 2
+                }"
+              >
+                {{ task.priority === 0 ? 'High' : task.priority === 1 ? 'Normal' : 'Low' }}
+              </span>
+            </div>
+
+            <!-- Description -->
+            <p
+              *ngIf="task.description"
+              class="task-description"
+            >
+              {{ task.description }}
+            </p>
+
+            <!-- Task metadata -->
+            <div class="task-meta">
+              <!-- Due date -->
+              <div *ngIf="task.dueDate" class="meta-item">
+                <mat-icon class="meta-icon">event</mat-icon>
+                <span
+                  class="due-date-text"
+                  [ngClass]="{
+                    'text-rose-600 font-medium': dueState(task) === 'overdue',
+                    'text-amber-600': dueState(task) === 'soon',
+                    'text-slate-600': dueState(task) === 'future'
+                  }"
+                >
+                  {{ task.dueDate | date: 'MMM d' }}
+                </span>
+              </div>
+
+              <!-- Created date -->
+              <div class="meta-item">
+                <mat-icon class="meta-icon">schedule</mat-icon>
+                <span class="text-slate-500">{{ task.createdAt | date: 'MMM d' }}</span>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="task-actions">
+              <!-- Edit button -->
+              <button
+                type="button"
+                (click)="editTask(task)"
+                class="action-btn action-btn-edit"
+              >
+                <mat-icon class="!text-xs">edit</mat-icon>
+                Edit
+              </button>
+
+              <!-- Remove button -->
+              <button
+                type="button"
+                (click)="removeTask(task)"
+                class="action-btn action-btn-remove"
+              >
+                <mat-icon class="!text-xs">delete</mat-icon>
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <!-- Drag preview (what shows while dragging) -->
+          <div class="task-card-preview" *cdkDragPreview>
+            <p class="task-title">{{ task.title }}</p>
+            <span
+              class="priority-badge"
+              [ngClass]="{
+                'priority-high': task.priority === 0,
+                'priority-normal': task.priority === 1,
+                'priority-low': task.priority === 2
+              }"
+            >
+              {{ task.priority === 0 ? 'High' : task.priority === 1 ? 'Normal' : 'Low' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>

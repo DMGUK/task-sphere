@@ -62,7 +62,7 @@ export class TasksListComponent implements OnInit {
   sortDir = signal<'asc' | 'desc'>('asc');
 
   searchControl = new FormControl<string>('', { nonNullable: true });
-  searchTerm = signal<string>(''); // 👈 NEW
+  searchTerm = signal<string>('');
 
   readonly viewMode = signal<'list' | 'board'>('list');
 
@@ -73,7 +73,6 @@ export class TasksListComponent implements OnInit {
   get isBoardView(): boolean {
     return this.viewMode() === 'board';
   }
-
 
   // derived list
   readonly filteredTasks = computed(() => {
@@ -128,7 +127,6 @@ export class TasksListComponent implements OnInit {
     }
   }
 
-
   ngOnInit(): void {
     this.load();
 
@@ -181,6 +179,72 @@ export class TasksListComponent implements OnInit {
       });
   }
 
+  startTask(task: Task) {
+    const old = { ...task };
+
+    const updated: Task = {
+      ...task,
+      status: 'in_progress',
+      originalStatus: 'in_progress'
+    };
+
+    // optimistic update in signal
+    this.tasks.update((list) =>
+      list.map((t) => (t.id === task.id ? updated : t))
+    );
+
+    this.taskService
+      .updateTask(task.id, {
+        status: 'in_progress',
+        originalStatus: 'in_progress'
+      })
+      .subscribe({
+        next: () =>
+          this.snack.open('Task started', 'OK', { duration: 1200 }),
+        error: (err) => {
+          console.error(err);
+          // rollback on error
+          this.tasks.update((list) =>
+            list.map((t) => (t.id === old.id ? old : t))
+          );
+          this.snack.open('Update failed', 'Dismiss', { duration: 2000 });
+        },
+      });
+  }
+
+  stopTask(task: Task) {
+    const old = { ...task };
+
+    const updated: Task = {
+      ...task,
+      status: 'todo',
+      originalStatus: 'todo'
+    };
+
+    // optimistic update in signal
+    this.tasks.update((list) =>
+      list.map((t) => (t.id === task.id ? updated : t))
+    );
+
+    this.taskService
+      .updateTask(task.id, {
+        status: 'todo',
+        originalStatus: 'todo'
+      })
+      .subscribe({
+        next: () =>
+          this.snack.open('Task stopped', 'OK', { duration: 1200 }),
+        error: (err) => {
+          console.error(err);
+          // rollback on error
+          this.tasks.update((list) =>
+            list.map((t) => (t.id === old.id ? old : t))
+          );
+          this.snack.open('Update failed', 'Dismiss', { duration: 2000 });
+        },
+      });
+  }
+
   openTaskDialog() {
     this.edit(); // no task => create
   }
@@ -197,7 +261,7 @@ export class TasksListComponent implements OnInit {
               description: '',
               dueDate: null,
               priority: 1,
-              status: 'todo',
+              // No status field - will be set to 'todo' when creating
             },
           },
     });
@@ -206,35 +270,37 @@ export class TasksListComponent implements OnInit {
       if (!result) return;
 
       if (task) {
-        // update existing
+        // EDIT MODE: Update existing task
+        // Status is NOT changed here - preserve existing status
         this.taskService
           .updateTask(task.id, {
             title: result.title,
             description: result.description,
             dueDate: result.dueDate,
             priority: result.priority,
-            status: result.status,
-            completed: result.status === 'done',
+            // status is intentionally NOT included - keeps existing status
           })
           .subscribe((updated) => {
             this.tasks.update((list) =>
               list.map((t) => (t.id === updated.id ? updated : t))
             );
+            this.snack.open('Task updated', 'OK', { duration: 1200 });
           });
       } else {
-        // create new
+        // CREATE MODE: New task always starts as 'todo'
         this.taskService
           .createTask({
             title: result.title,
             description: result.description,
             dueDate: result.dueDate,
             priority: result.priority,
-            status: result.status,
-            originalStatus: result.status,
-            completed: result.status === 'done',
+            status: 'todo', // ⭐ Always 'todo' for new tasks
+            originalStatus: 'todo', // ⭐ Track original status
+            completed: false, // ⭐ Never completed when created
           })
           .subscribe((created) => {
             this.tasks.update((list) => [...list, created]);
+            this.snack.open('Task created', 'OK', { duration: 1200 });
           });
       }
     });
@@ -283,4 +349,14 @@ export class TasksListComponent implements OnInit {
     return this.filteredTasks().filter((t) => t.completed).length;
   }
 
+  // Event handlers for board component
+  onTaskUpdated(updatedTask: Task): void {
+    this.tasks.update((list) =>
+      list.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+    );
+  }
+
+  onTaskDeleted(taskId: number): void {
+    this.tasks.update((list) => list.filter((t) => t.id !== taskId));
+  }
 }

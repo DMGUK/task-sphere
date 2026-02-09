@@ -15,10 +15,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
-import {
-  MatDatepickerModule
-} from '@angular/material/datepicker';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatIconModule } from '@angular/material/icon';
 import { Task, TaskPriority, TaskStatus } from '../tasks.model';
 
 interface TaskDialogData {
@@ -39,11 +38,11 @@ interface TaskDialogData {
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatIconModule, // Added for info icon
   ],
   templateUrl: './task-edit-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-
 export class TaskEditDialogComponent {
   private fb = inject(FormBuilder);
   form: FormGroup;
@@ -61,12 +60,12 @@ export class TaskEditDialogComponent {
   ) {
     const t = data.task || {};
 
+    // Status field removed - no longer in form
     this.form = this.fb.group({
       title: [t.title ?? '', [Validators.required, Validators.minLength(2)]],
       description: [t.description ?? ''],
       dueDate: [t.dueDate ? new Date(t.dueDate) : null],
       priority: [t.priority ?? 1, [Validators.required]],
-      status: [t.status ?? ('todo' as TaskStatus), [Validators.required]],
     });
   }
 
@@ -84,7 +83,9 @@ export class TaskEditDialogComponent {
       description: raw.description || null,
       dueDate: raw.dueDate ? (raw.dueDate as Date).toISOString() : null,
       priority: raw.priority as TaskPriority,
-      status: raw.status as TaskStatus,
+      // Status is NOT included in the patch
+      // For new tasks, it will be set to 'todo' in the component
+      // For edits, the existing status is preserved
     };
 
     this.dialogRef.close(patch);
