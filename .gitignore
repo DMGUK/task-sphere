@@ -1,19 +1,181 @@
-# dependencies
+# TaskSphere - Complete .gitignore
+
+# ============================================
+# NODE & NPM
+# ============================================
 node_modules/
-dist/
-.angular/
-.cache/
-uploads/
-
-# env files
-.env
-.env.*
-
-# logs
 npm-debug.log*
 yarn-debug.log*
-pnpm-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
-# OS
+# ============================================
+# ENVIRONMENT & SECRETS
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.env
+
+# API keys and secrets
+secrets/
+*.key
+*.pem
+*.cert
+
+# ============================================
+# FRONTEND (ANGULAR)
+# ============================================
+
+# Build outputs
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+frontend/.angular/
+frontend/bazel-out
+
+# IDE & Editor
+frontend/.vscode/*
+!frontend/.vscode/extensions.json
+frontend/.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+frontend/coverage/
+frontend/.nyc_output/
+
+# Angular cache
+frontend/.angular/cache/
+
+# ============================================
+# BACKEND (NODE + EXPRESS)
+# ============================================
+
+# Build outputs
+backend/dist/
+backend/build/
+
+# Logs
+backend/logs/
+backend/*.log
+
+# Database
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# Prisma
+backend/prisma/migrations/*_backup/
+
+# Uploads & User Content
+backend/uploads/avatars/*
+!backend/uploads/avatars/.gitkeep
+backend/uploads/documents/*
+!backend/uploads/documents/.gitkeep
+backend/uploads/temp/*
+!backend/uploads/temp/.gitkeep
+
+# Cache
+backend/.cache/
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+.docker/
+
+# ============================================
+# OS FILES
+# ============================================
+
+# MacOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================
+# IDE & EDITORS
+# ============================================
+
+# VSCode
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# ============================================
+# TESTING & COVERAGE
+# ============================================
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+
+# ============================================
+# MISC
+# ============================================
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+*~
+
+# Lock files (keep package-lock.json, remove others)
+yarn.lock
+pnpm-lock.yaml
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional npm cache
+.npm
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# ============================================
+# PROJECT SPECIFIC
+# ============================================
+
+# Development database
+dev.db
+
+# Email testing (Mailpit)
+mailpit-data/
+
+# Documentation builds
+docs/build/
+
+# Scripts output
+scripts/output/
