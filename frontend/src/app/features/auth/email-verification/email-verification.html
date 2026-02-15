@@ -1,0 +1,88 @@
+<div class="verification-container">
+  <mat-card class="verification-card">
+
+    <!-- Loading State -->
+    <div *ngIf="state() === 'loading'" class="state-content">
+      <mat-spinner diameter="60" color="primary"></mat-spinner>
+      <h2>Verifying your email...</h2>
+      <p>Please wait a moment</p>
+    </div>
+
+    <!-- Success State -->
+    <div *ngIf="state() === 'success'" class="state-content success">
+      <div class="icon-wrapper success-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <h2>Email Verified!</h2>
+      <p class="success-message">
+        Your email has been successfully verified. Welcome to TaskSphere!
+      </p>
+      <p class="countdown-text">
+        Redirecting to your tasks in {{ countdown() }}...
+      </p>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="goToTasks()"
+        class="action-button"
+      >
+        Go to Tasks Now
+      </button>
+    </div>
+
+    <!-- Already Verified State -->
+    <div *ngIf="state() === 'already-verified'" class="state-content info">
+      <div class="icon-wrapper info-icon">
+        <mat-icon>info</mat-icon>
+      </div>
+      <h2>Already Verified</h2>
+      <p>Your email has already been verified. You're all set!</p>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="goToTasks()"
+        class="action-button"
+      >
+        Go to Tasks
+      </button>
+    </div>
+
+    <!-- Expired State -->
+    <div *ngIf="state() === 'expired'" class="state-content warning">
+      <div class="icon-wrapper warning-icon">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <h2>Link Expired</h2>
+      <p>{{ errorMessage() }}</p>
+      <p class="hint-text">
+        Please log in and request a new verification email from your profile.
+      </p>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="goToLogin()"
+        class="action-button"
+      >
+        Go to Login
+      </button>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="state() === 'error'" class="state-content error">
+      <div class="icon-wrapper error-icon">
+        <mat-icon>error</mat-icon>
+      </div>
+      <h2>Verification Failed</h2>
+      <p>{{ errorMessage() }}</p>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="goToLogin()"
+        class="action-button"
+      >
+        Back to Login
+      </button>
+    </div>
+
+  </mat-card>
+</div>
