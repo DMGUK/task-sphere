@@ -1,4 +1,26 @@
 <div class="mx-auto max-w-6xl px-4">
+  <!-- Email Verification Banner -->
+  <div *ngIf="profile && !profile.emailVerifiedAt" class="verification-banner">
+    <div class="banner-icon">
+      <mat-icon>mail_outline</mat-icon>
+    </div>
+    <div class="banner-content">
+      <p class="banner-title">Verify your email address</p>
+      <p class="banner-text">
+        Please check your email and click the verification link to unlock all features.
+      </p>
+    </div>
+    <button
+      mat-stroked-button
+      color="primary"
+      (click)="resendVerification()"
+      [disabled]="resendingEmail"
+      class="resend-button"
+    >
+      {{ resendingEmail ? 'Sending...' : 'Resend Email' }}
+    </button>
+  </div>
+
   <!-- Page header (like Tasks) -->
   <div class="mb-5">
     <div class="text-2xl font-semibold text-slate-900">Profile</div>

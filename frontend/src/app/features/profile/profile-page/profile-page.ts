@@ -1,16 +1,38 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize } from 'rxjs/operators';
 import { ProfileService } from '../profile.service';
 import { UserProfile } from '../profile.model';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../auth/auth.service';
+import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-profile-page',
   templateUrl: './profile-page.html',
   styleUrls: ['./profile-page.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+  ],
 })
 export class ProfilePage implements OnInit, OnDestroy {
   loading = true;
@@ -29,7 +51,8 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   constructor(
     private profileService: ProfileService,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -147,5 +170,26 @@ export class ProfilePage implements OnInit, OnDestroy {
           this.snack.open(msg, 'Close', { duration: 3500 });
         },
       });
+  }
+
+  resendingEmail = false;
+
+  resendVerification(): void {
+    this.resendingEmail = true;
+
+    this.authService.resendVerification().subscribe({
+      next: () => {
+        this.resendingEmail = false;
+        this.snack.open('Verification email sent! Please check your inbox.', 'OK', {
+          duration: 3000,
+        });
+      },
+      error: (err) => {
+        this.resendingEmail = false;
+        this.snack.open(err.error?.message || 'Failed to send email. Please try again.', 'Dismiss', {
+          duration: 3000,
+        });
+      },
+    });
   }
 }

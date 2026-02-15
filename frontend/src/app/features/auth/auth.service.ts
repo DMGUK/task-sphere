@@ -1,7 +1,7 @@
 // src/app/features/auth/auth.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -33,17 +33,14 @@ export class AuthService {
       .pipe(tap(() => {}));
   }
 
-  verifyEmail(token: string) {
-    return this.http.get<{ message: string; user: any }>(
-      `${environment.apiBase}/auth/verify-email?token=${encodeURIComponent(token)}`
-    );
+  verifyEmail(token: string): Observable<any> {
+    return this.http.get(`${this.base}/verify-email`, {
+      params: { token },
+    });
   }
 
-  resendVerification() {
-    return this.http.post<{ message: string; verifyUrl?: string }>(
-      `${environment.apiBase}/auth/resend-verification`,
-      {}
-    );
+  resendVerification(): Observable<any> {
+    return this.http.post(`${this.base}/resend-verification`, {});
   }
 
   logout() {
