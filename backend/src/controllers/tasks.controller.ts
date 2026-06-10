@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/prisma';
 
 interface AuthRequest extends Request {
   user: { id: number };
@@ -13,6 +11,7 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
     const tasks = await prisma.task.findMany({
       where: { userId: req.user.id },
       orderBy: { createdAt: 'asc' },
+      take: 500,
     });
 
     res.json(tasks);
@@ -83,19 +82,21 @@ export async function updateTask(req: AuthRequest, res: Response) {
 // DELETE /api/tasks/:id
 export const deleteTask = async (req: AuthRequest, res: Response) => {
   const id = Number(req.params.id);
+  const userId = req.user.id;
+
   if (Number.isNaN(id)) {
     res.status(400).json({ message: 'Invalid task id' });
     return;
   }
 
   try {
-    await prisma.task.delete({
-      where: {
-        // same note as above – add userId if you already had it
-        id,
-      },
-    });
+    const existing = await prisma.task.findFirst({ where: { id, userId } });
+    if (!existing) {
+      res.status(404).json({ message: 'Task not found' });
+      return;
+    }
 
+    await prisma.task.delete({ where: { id } });
     res.status(204).end();
   } catch (err) {
     console.error(err);
