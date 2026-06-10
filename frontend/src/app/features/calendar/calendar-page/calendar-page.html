@@ -1,0 +1,62 @@
+<div class="calendar-container">
+
+  <!-- Header -->
+  <div class="calendar-header">
+    <h1 class="calendar-title">{{ monthLabel() }}</h1>
+    <div class="calendar-nav">
+      <button mat-icon-button (click)="prevMonth()" matTooltip="Previous month">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button mat-stroked-button (click)="goToToday()" class="today-btn">Today</button>
+      <button mat-icon-button (click)="nextMonth()" matTooltip="Next month">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Weekday headers -->
+  <div class="weekday-row">
+    @for (day of weekDays; track day) {
+      <div class="weekday-header">{{ day }}</div>
+    }
+  </div>
+
+  <!-- Calendar grid -->
+  <div class="calendar-grid">
+    @for (week of weeks(); track $index) {
+      @for (day of week; track $index) {
+        <div
+          class="calendar-day"
+          [class.other-month]="!day.isCurrentMonth"
+          [class.today]="day.isToday"
+          (click)="openCreateDialog(day)">
+
+          <div class="day-number">
+            <span class="add-task-hint">+ Add task</span>
+            <span [class.today-badge]="day.isToday">{{ day.date.getDate() }}</span>
+          </div>
+
+          <div class="day-tasks">
+            @for (task of day.tasks.slice(0, 3); track task.id) {
+              <div
+                class="task-chip"
+                [ngClass]="taskChipClass(task)"
+                [matTooltip]="task.title"
+                (click)="openEditDialog(task, $event)">
+                <span class="task-chip-title">{{ task.title }}</span>
+                <button
+                  class="task-chip-delete"
+                  matTooltip="Delete task"
+                  (click)="deleteTask(task, $event)">×</button>
+              </div>
+            }
+            @if (day.tasks.length > 3) {
+              <div class="task-overflow">+{{ day.tasks.length - 3 }} more</div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+</div>

@@ -1,0 +1,58 @@
+<div class="notes-container">
+
+  <!-- Header -->
+  <div class="notes-header">
+    <h1 class="notes-title">My Notes</h1>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      New note
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="notes-empty">Loading...</div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && notes().length === 0) {
+    <div class="notes-empty">
+      <mat-icon class="empty-icon">note_alt</mat-icon>
+      <p>No notes yet. Create your first one!</p>
+    </div>
+  }
+
+  <!-- Notes grid -->
+  @if (!loading() && notes().length > 0) {
+    <div class="notes-grid">
+      @for (note of notes(); track note.id) {
+        <div
+          class="note-card"
+          [style.background]="note.color"
+          (click)="openEditDialog(note)">
+
+          <div class="note-card-header">
+            <h3 class="note-title">{{ note.title }}</h3>
+            <button
+              class="note-delete"
+              mat-icon-button
+              matTooltip="Delete note"
+              (click)="deleteNote(note, $event)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+
+          @if (note.content) {
+            <p class="note-content">{{ note.content }}</p>
+          }
+
+          <div class="note-footer">
+            {{ note.updatedAt | formatDate }}
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

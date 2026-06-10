@@ -1,0 +1,25 @@
+.color-swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+  outline: 1px solid rgba(0, 0, 0, 0.12);
+
+  &:hover {
+    transform: scale(1.15);
+  }
+
+  &.selected {
+    border-color: #667eea;
+    transform: scale(1.15);
+    outline-color: #667eea;
+  }
+}
