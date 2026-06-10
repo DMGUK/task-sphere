@@ -1,29 +1,107 @@
 <div class="min-h-screen flex flex-col bg-brand-bg">
-  <!-- Top bar -->
-  <header class="h-14 bg-brand-primary text-slate-50 flex items-center justify-between px-6 shadow-md">
+  <!-- Global Loading Bar -->
+  <mat-progress-bar
+    *ngIf="loadingService.isLoading()"
+    mode="indeterminate"
+    class="global-loading-bar"
+    >
+  </mat-progress-bar>
 
-    <div class="flex items-center gap-2">
-      <span class="font-semibold tracking-wide text-lg">TaskSphere</span>
+  <!-- Top bar -->
+  <header class="header">
+    <!-- Left side: Logo -->
+    <div class="header-left">
+      <span class="logo">TaskSphere</span>
     </div>
 
-    <nav class="flex items-center gap-4 text-sm">
-      <!-- You already have auth service injected, reuse it -->
+    <!-- Center: Navigation (only when logged in) -->
+    <nav class="nav-links" *ngIf="isLoggedIn()">
+      <a
+        routerLink="/tasks"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: false}"
+        class="nav-link">
+        <mat-icon class="nav-icon">task</mat-icon>
+        <span class="nav-text">Tasks</span>
+      </a>
+
+      <a
+        routerLink="/notes"
+        routerLinkActive="active"
+        class="nav-link">
+        <mat-icon class="nav-icon">note_alt</mat-icon>
+        <span class="nav-text">Notes</span>
+      </a>
+
+      <a
+        routerLink="/calendar"
+        routerLinkActive="active"
+        class="nav-link">
+        <mat-icon class="nav-icon">calendar_month</mat-icon>
+        <span class="nav-text">Calendar</span>
+      </a>
+
+      <a
+        routerLink="/profile"
+        routerLinkActive="active"
+        class="nav-link">
+        <mat-icon class="nav-icon">person</mat-icon>
+        <span class="nav-text">Profile</span>
+      </a>
+    </nav>
+
+    <!-- Right side: Auth or User Menu -->
+    <div class="header-right">
       <ng-container *ngIf="isLoggedIn(); else authLinks">
-        <a mat-button routerLink="/profile">Profile</a>
-        <a mat-button routerLink="/tasks">Tasks</a>
-        <button class="hover:text-white/80 transition-colors" (click)="logout()">Logout</button>
+        <!-- User Menu with Avatar -->
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="userMenu"
+          class="user-avatar-button">
+          <div class="user-avatar">
+            <img *ngIf="userAvatarUrl"
+                [src]="userAvatarUrl"
+                alt="Avatar"
+                class="avatar-image">
+          </div>
+        </button>
+
+        <mat-menu #userMenu="matMenu" class="user-dropdown">
+          <div class="user-menu-header">
+            <div class="user-menu-name">{{ userDisplayName }}</div>
+            <div class="user-menu-email">{{ userEmail }}</div>
+            <div class="user-menu-status" [class.verified]="emailVerified">
+              <mat-icon class="status-icon">
+                {{ emailVerified ? 'verified' : 'warning' }}
+              </mat-icon>
+              {{ emailVerified ? 'Email verified' : 'Email not verified' }}
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item routerLink="/profile">
+            <mat-icon>person</mat-icon>
+            Profile
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            Logout
+          </button>
+        </mat-menu>
       </ng-container>
 
-
+      <!-- Auth Links (not logged in) -->
       <ng-template #authLinks>
-        <a routerLink="/auth/login" class="hover:text-white/80">Login</a>
-        <a routerLink="/auth/register" class="hover:text-white/80">Register</a>
+        <div class="auth-links">
+          <a routerLink="/auth/login" class="auth-link">Login</a>
+          <a routerLink="/auth/register" class="auth-link auth-link-primary">Register</a>
+        </div>
       </ng-template>
-    </nav>
+    </div>
   </header>
 
   <!-- Content -->
-  <main class="flex-1 px-4 py-8 md:px-8">
+  <main class="main-content">
     <router-outlet></router-outlet>
   </main>
 </div>
