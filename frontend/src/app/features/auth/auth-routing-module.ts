@@ -9,8 +9,18 @@ const routes: Routes = [
   {
     path: 'verify-email',
     loadComponent: () => import('./email-verification/email-verification')
-      .then(m => m.EmailVerificationComponent)  // ← Lazy load standalone component
-  }
+      .then(m => m.EmailVerificationComponent)
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./forgot-password/forgot-password')
+      .then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () => import('./reset-password/reset-password')
+      .then(m => m.ResetPasswordComponent)
+  },
 ];
 
 @NgModule({
