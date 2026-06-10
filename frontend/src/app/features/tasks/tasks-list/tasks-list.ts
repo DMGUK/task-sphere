@@ -157,11 +157,7 @@ export class TasksListComponent implements OnInit {
     const newStatus: TaskStatus = nowCompleted ? 'done' : task.originalStatus;
 
     const updated: Task = { ...task, completed: nowCompleted, status: newStatus };
-
-    // optimistic update in signal
-    this.tasks.update((list) =>
-      list.map((t) => (t.id === task.id ? updated : t))
-    );
+    this.replaceTask(updated);
 
     this.taskService
       .updateTask(task.id, { completed: nowCompleted, status: newStatus })
@@ -182,16 +178,8 @@ export class TasksListComponent implements OnInit {
   startTask(task: Task) {
     const old = { ...task };
 
-    const updated: Task = {
-      ...task,
-      status: 'in_progress',
-      originalStatus: 'in_progress'
-    };
-
-    // optimistic update in signal
-    this.tasks.update((list) =>
-      list.map((t) => (t.id === task.id ? updated : t))
-    );
+    const updated: Task = { ...task, status: 'in_progress', originalStatus: 'in_progress' };
+    this.replaceTask(updated);
 
     this.taskService
       .updateTask(task.id, {
@@ -215,16 +203,8 @@ export class TasksListComponent implements OnInit {
   stopTask(task: Task) {
     const old = { ...task };
 
-    const updated: Task = {
-      ...task,
-      status: 'todo',
-      originalStatus: 'todo'
-    };
-
-    // optimistic update in signal
-    this.tasks.update((list) =>
-      list.map((t) => (t.id === task.id ? updated : t))
-    );
+    const updated: Task = { ...task, status: 'todo', originalStatus: 'todo' };
+    this.replaceTask(updated);
 
     this.taskService
       .updateTask(task.id, {
@@ -349,11 +329,13 @@ export class TasksListComponent implements OnInit {
     return this.filteredTasks().filter((t) => t.completed).length;
   }
 
+  private replaceTask(updated: Task): void {
+    this.tasks.update((list) => list.map((t) => (t.id === updated.id ? updated : t)));
+  }
+
   // Event handlers for board component
   onTaskUpdated(updatedTask: Task): void {
-    this.tasks.update((list) =>
-      list.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-    );
+    this.replaceTask(updatedTask);
   }
 
   onTaskDeleted(taskId: number): void {

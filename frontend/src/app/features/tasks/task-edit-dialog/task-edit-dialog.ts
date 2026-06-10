@@ -23,6 +23,7 @@ import { Task, TaskPriority, TaskStatus } from '../tasks.model';
 interface TaskDialogData {
   mode: 'create' | 'edit';
   task: Partial<Task>;
+  minDate?: Date | null;
 }
 
 @Component({
@@ -47,17 +48,21 @@ export class TaskEditDialogComponent {
   private fb = inject(FormBuilder);
   form: FormGroup;
 
-  minDate: Date = (() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 1);
-    return d;
-  })();
+  minDate: Date | null;
 
   constructor(
     private dialogRef: MatDialogRef<TaskEditDialogComponent, Partial<Task> | null>,
     @Inject(MAT_DIALOG_DATA) public data: TaskDialogData
   ) {
+    if (data.minDate !== undefined) {
+      this.minDate = data.minDate;
+    } else {
+      const tomorrow = new Date();
+      tomorrow.setHours(0, 0, 0, 0);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      this.minDate = tomorrow;
+    }
+
     const t = data.task || {};
 
     // Status field removed - no longer in form
