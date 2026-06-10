@@ -4,6 +4,9 @@ import { MainLayout } from './layout/main-layout/main-layout';
 import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
+  // Root → login
+  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+
   // 1) Public auth routes
   {
     path: 'auth',
@@ -22,8 +25,16 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/tasks/tasks-module').then(m => m.TasksModule),
       },
-      // future: add more protected modules here:
-      // { path: 'projects', loadChildren: ... }
+      {
+        path: 'calendar',
+        loadChildren: () =>
+          import('./features/calendar/calendar-module').then(m => m.CalendarModule),
+      },
+      {
+        path: 'notes',
+        loadChildren: () =>
+          import('./features/notes/notes-module').then(m => m.NotesModule),
+      },
 
       // when inside the shell: '' -> 'tasks'
       { path: '', redirectTo: 'tasks', pathMatch: 'full' },
@@ -37,6 +48,6 @@ export const routes: Routes = [
 
 
 
-  // 3) Fallback: anything unknown -> go through shell (and thus guard)
-  { path: '**', redirectTo: '' },
+  // 3) Fallback
+  { path: '**', redirectTo: 'auth/login' },
 ];
