@@ -1,20 +1,16 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import {
   getTasks,
   createTask,
   updateTask,
   deleteTask,
 } from '../controllers/tasks.controller';
-import { authRequired } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// all /api/tasks routes require auth
-router.use(authRequired);
-
-router.get('/', getTasks as any);
-router.post('/', createTask as any);
-router.patch('/:id', updateTask as any);
-router.delete('/:id', deleteTask as any);
+router.get('/', getTasks as unknown as RequestHandler);
+router.post('/', createTask as unknown as RequestHandler);
+router.patch('/:id', updateTask as unknown as RequestHandler);
+router.delete('/:id', deleteTask as unknown as RequestHandler);
 
 export default router;
