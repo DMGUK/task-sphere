@@ -21,18 +21,34 @@ model User {
   avatarUrl          String?
   
   // Email verification
-  emailVerifiedAt    DateTime?
-  emailVerifyToken   String?   @unique
-  emailVerifyExpires DateTime?
-  
-  createdAt          DateTime  @default(now())
+  emailVerifiedAt      DateTime?
+  emailVerifyToken     String?   @unique
+  emailVerifyExpires   DateTime?
+
+  // Password reset
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
+  createdAt            DateTime  @default(now())
   tasks              Task[]
+  notes              Note[]
 }
 
 enum TaskStatus {
   todo
   in_progress
   done
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?  @db.Text
+  color     String   @default("#ffffff")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
 }
 
 model Task {
