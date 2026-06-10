@@ -3,7 +3,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
 import { generateVerifyToken, hashVerifyToken } from '../utils/emailVerification';
-import { emailService } from '../services/email.service'; // ← ADD THIS
+import { emailService } from '../services/email.service';
+import { USER_SAFE_SELECT } from '../config/db-selects';
+import { validateEmail, validatePassword } from '../utils/validation';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_super_secret_change_me';
 
@@ -17,24 +19,16 @@ function publicBaseUrl(req: Request) {
   return `${req.protocol}://${req.get('host')}`;
 }
 
-function userSafeSelect() {
-  return {
-    id: true,
-    email: true,
-    displayName: true,
-    avatarUrl: true,
-    createdAt: true,
-    emailVerifiedAt: true,
-  };
-}
-
 export async function register(req: Request, res: Response) {
-  const email = String(req.body?.email || '').trim().toLowerCase();
-  const password = String(req.body?.password || '');
-  const displayName = String(req.body?.displayName || '').trim() || null; // ← ADD THIS
+  const emailResult = validateEmail(req.body?.email);
+  if (!emailResult.valid) return res.status(400).json({ message: emailResult.message });
+  const email = emailResult.value;
 
-  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
-  if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' });
+  const passwordResult = validatePassword(req.body?.password);
+  if (!passwordResult.valid) return res.status(400).json({ message: passwordResult.message });
+  const password = String(req.body?.password || '');
+
+  const displayName = String(req.body?.displayName || '').trim() || null;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return res.status(409).json({ message: 'Email already in use' });
@@ -43,14 +37,14 @@ export async function register(req: Request, res: Response) {
   const { rawToken, tokenHash, expires } = generateVerifyToken();
 
   const user = await prisma.user.create({
-    data: { 
-      email, 
+    data: {
+      email,
       passwordHash,
-      displayName, // ← ADD THIS
+      displayName,
       emailVerifyToken: tokenHash,
       emailVerifyExpires: expires,
     },
-    select: userSafeSelect(),
+    select: USER_SAFE_SELECT,
   });
 
   // ← ADD EMAIL SENDING HERE
@@ -80,14 +74,16 @@ export async function register(req: Request, res: Response) {
 }
 
 export async function login(req: Request, res: Response) {
-  const email = String(req.body?.email || '').trim().toLowerCase();
-  const password = String(req.body?.password || '');
+  const emailResult = validateEmail(req.body?.email);
+  if (!emailResult.valid) return res.status(400).json({ message: emailResult.message });
+  const email = emailResult.value;
 
-  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
+  const password = String(req.body?.password || '');
+  if (!password) return res.status(400).json({ message: 'Password is required' });
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { ...userSafeSelect(), passwordHash: true },
+    select: { ...USER_SAFE_SELECT, passwordHash: true },
   });
 
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
@@ -122,7 +118,7 @@ export async function verifyEmail(req: Request, res: Response) {
       emailVerifyToken: tokenHash,
     },
     select: {
-      ...userSafeSelect(),
+      ...USER_SAFE_SELECT,
       emailVerifyExpires: true, // Include expiry to check it
     },
   });
@@ -159,7 +155,7 @@ export async function verifyEmail(req: Request, res: Response) {
       emailVerifyToken: null,
       emailVerifyExpires: null,
     },
-    select: userSafeSelect(),
+    select: USER_SAFE_SELECT,
   });
 
   return res.json({ 
@@ -169,13 +165,77 @@ export async function verifyEmail(req: Request, res: Response) {
   });
 }
 
+export async function forgotPassword(req: Request, res: Response) {
+  const emailResult = validateEmail(req.body?.email);
+  if (!emailResult.valid) return res.status(400).json({ message: emailResult.message });
+  const email = emailResult.value;
+
+  const user = await prisma.user.findUnique({ where: { email }, select: { ...USER_SAFE_SELECT } });
+
+  // Always respond the same way to prevent email enumeration
+  if (!user) return res.json({ message: 'If that email exists, a reset link has been sent.' });
+
+  const { rawToken, tokenHash, expires } = generateVerifyToken();
+  const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordResetToken: tokenHash, passwordResetExpires: resetExpires },
+  });
+
+  try {
+    await emailService.sendPasswordResetEmail(user.email, rawToken, user.displayName || undefined);
+  } catch (err) {
+    console.error('Failed to send password reset email:', err);
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    const resetUrl = `${publicBaseUrl(req)}/auth/reset-password?token=${rawToken}`;
+    console.log('🔐 Password reset URL:', resetUrl);
+  }
+
+  return res.json({ message: 'If that email exists, a reset link has been sent.' });
+}
+
+export async function resetPassword(req: Request, res: Response) {
+  const rawToken = String(req.body?.token || '').trim();
+  const newPassword = String(req.body?.password || '');
+
+  if (!rawToken) return res.status(400).json({ message: 'Token is required' });
+
+  const passwordResult = validatePassword(newPassword);
+  if (!passwordResult.valid) return res.status(400).json({ message: passwordResult.message });
+
+  const tokenHash = hashVerifyToken(rawToken);
+
+  const user = await prisma.user.findFirst({
+    where: { passwordResetToken: tokenHash },
+    select: { id: true, passwordResetExpires: true },
+  });
+
+  if (!user) return res.status(400).json({ message: 'Invalid or expired reset token' });
+
+  if (user.passwordResetExpires && new Date() > user.passwordResetExpires) {
+    return res.status(400).json({ message: 'Reset token has expired. Please request a new one.' });
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash, passwordResetToken: null, passwordResetExpires: null },
+  });
+
+  return res.json({ message: 'Password reset successfully. You can now log in.' });
+}
+
 export async function resendVerification(req: Request & { user?: { id: number } }, res: Response) {
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: userSafeSelect(),
+    select: USER_SAFE_SELECT,
   });
 
   if (!user) return res.status(404).json({ message: 'User not found' });
