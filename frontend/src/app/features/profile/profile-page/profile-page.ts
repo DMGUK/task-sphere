@@ -14,6 +14,8 @@ import { UserProfile } from '../profile.model';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../auth/auth.service';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../../core/toast.service';
+import { getInitials } from '../../../shared/initials.util';
 
 
 @Component({
@@ -53,6 +55,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     private profileService: ProfileService,
     private snack: MatSnackBar,
     private authService: AuthService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -84,20 +87,12 @@ export class ProfilePage implements OnInit, OnDestroy {
           this.form.reset({ displayName: p.displayName ?? '' }, { emitEvent: false });
           this.form.markAsPristine();
         },
-        error: () => this.snack.open('Failed to load profile', 'Close', { duration: 3000 }),
+        error: () => this.toast.error('Failed to load profile'),
       });
   }
 
   get initials(): string {
-    const name = String(this.form.value?.displayName || '').trim();
-    if (name.length >= 2) {
-      const parts = name.split(/\s+/).filter(Boolean);
-      const first = parts[0]?.[0] ?? '';
-      const second = parts.length > 1 ? (parts[1]?.[0] ?? '') : (parts[0]?.[1] ?? '');
-      return (first + second).toUpperCase();
-    }
-    const email = this.profile?.email ?? '';
-    return email.slice(0, 2).toUpperCase();
+    return getInitials(this.form.value?.displayName, this.profile?.email);
   }
 
   get avatarSrc(): string | null {
@@ -141,11 +136,11 @@ export class ProfilePage implements OnInit, OnDestroy {
       .subscribe({
         next: (updated) => {
           this.profile = updated;
-          this.snack.open('Avatar updated', 'Close', { duration: 2500 });
+          this.toast.success('Avatar updated!');
         },
         error: (err) => {
           const msg = err?.error?.message || 'Avatar upload failed';
-          this.snack.open(msg, 'Close', { duration: 3500 });
+          this.toast.error(msg);
         },
       });
   }
@@ -163,11 +158,11 @@ export class ProfilePage implements OnInit, OnDestroy {
         next: (updated) => {
           this.profile = updated;
           this.form.markAsPristine();
-          this.snack.open('Profile updated', 'Close', { duration: 2500 });
+          this.toast.success('Profile updated!');
         },
         error: (err) => {
           const msg = err?.error?.message || 'Could not update profile';
-          this.snack.open(msg, 'Close', { duration: 3500 });
+          this.toast.error(msg);
         },
       });
   }
@@ -180,15 +175,11 @@ export class ProfilePage implements OnInit, OnDestroy {
     this.authService.resendVerification().subscribe({
       next: () => {
         this.resendingEmail = false;
-        this.snack.open('Verification email sent! Please check your inbox.', 'OK', {
-          duration: 3000,
-        });
+        this.toast.success('Verification email sent! Check your inbox.');
       },
       error: (err) => {
         this.resendingEmail = false;
-        this.snack.open(err.error?.message || 'Failed to send email. Please try again.', 'Dismiss', {
-          duration: 3000,
-        });
+        this.toast.error(err.error?.message || 'Failed to send email');
       },
     });
   }
