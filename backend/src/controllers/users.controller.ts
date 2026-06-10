@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import path from 'path';
-import fs from 'fs/promises';
 import { prisma } from '../config/prisma';
+import { USER_SAFE_SELECT } from '../config/db-selects';
+import { safeUnlink, avatarUrlToDiskPath } from '../utils/file';
 
 type AuthedRequest = Request & { user?: { id: number } };
 
@@ -23,23 +23,6 @@ function toPublicUser(u: {
   };
 }
 
-async function safeUnlink(filePath: string) {
-  try {
-    await fs.unlink(filePath);
-  } catch {
-    // ignore
-  }
-}
-
-function avatarUrlToDiskPath(avatarUrl: string): string | null {
-  // Only delete files we own
-  if (!avatarUrl.startsWith('/uploads/avatars/')) return null;
-
-  const filename = avatarUrl.replace('/uploads/avatars/', '');
-  if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) return null;
-
-  return path.join(process.cwd(), 'uploads', 'avatars', filename);
-}
 
 export async function getMe(req: AuthedRequest, res: Response) {
   const userId = req.user?.id;
@@ -47,14 +30,7 @@ export async function getMe(req: AuthedRequest, res: Response) {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      displayName: true,
-      avatarUrl: true,
-      createdAt: true,
-      emailVerifiedAt: true,
-    },
+    select: USER_SAFE_SELECT,
   });
 
   if (!user) return res.status(404).json({ message: 'User not found' });
@@ -80,14 +56,7 @@ export async function updateMe(req: AuthedRequest, res: Response) {
   const updated = await prisma.user.update({
     where: { id: userId },
     data,
-    select: {
-      id: true,
-      email: true,
-      displayName: true,
-      avatarUrl: true,
-      createdAt: true,
-      emailVerifiedAt: true,
-    },
+    select: USER_SAFE_SELECT,
   });
 
   return res.json(toPublicUser(updated));
@@ -102,14 +71,7 @@ export async function uploadAvatar(req: AuthedRequest, res: Response) {
 
   const current = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      avatarUrl: true,
-      id: true,
-      email: true,
-      displayName: true,
-      createdAt: true,
-      emailVerifiedAt: true,
-    },
+    select: { ...USER_SAFE_SELECT, avatarUrl: true },
   });
 
   if (!current) return res.status(404).json({ message: 'User not found' });
@@ -119,14 +81,7 @@ export async function uploadAvatar(req: AuthedRequest, res: Response) {
   const updated = await prisma.user.update({
     where: { id: userId },
     data: { avatarUrl: newAvatarUrl },
-    select: {
-      id: true,
-      email: true,
-      displayName: true,
-      avatarUrl: true,
-      createdAt: true,
-      emailVerifiedAt: true,
-    },
+    select: USER_SAFE_SELECT,
   });
 
   // delete old local avatar
