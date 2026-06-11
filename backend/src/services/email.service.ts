@@ -2,16 +2,21 @@ import { Resend } from 'resend';
 import { config } from '../config';
 import { verificationEmailHtml, passwordResetEmailHtml } from '../templates/verification-email';
 
-const resend = new Resend(config.email.resendApiKey);
-
 interface EmailOptions {
   to: string;
   subject: string;
   html: string;
 }
 
+function getClient(): Resend {
+  if (!config.email.resendApiKey) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
+  return new Resend(config.email.resendApiKey);
+}
+
 async function sendEmail(options: EmailOptions): Promise<void> {
-  const { error } = await resend.emails.send({
+  const { error } = await getClient().emails.send({
     from: config.email.from,
     to: options.to,
     subject: options.subject,
