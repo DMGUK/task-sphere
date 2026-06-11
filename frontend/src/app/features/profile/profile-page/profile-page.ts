@@ -1,16 +1,40 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize } from 'rxjs/operators';
 import { ProfileService } from '../profile.service';
 import { UserProfile } from '../profile.model';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../auth/auth.service';
+import { CommonModule } from '@angular/common';
+import { ToastService } from '../../../core/toast.service';
+import { getInitials } from '../../../shared/initials.util';
+
 
 @Component({
   selector: 'app-profile-page',
   templateUrl: './profile-page.html',
   styleUrls: ['./profile-page.scss'],
-  standalone: false,
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatButtonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+  ],
 })
 export class ProfilePage implements OnInit, OnDestroy {
   loading = true;
@@ -29,7 +53,9 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   constructor(
     private profileService: ProfileService,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private authService: AuthService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -61,20 +87,12 @@ export class ProfilePage implements OnInit, OnDestroy {
           this.form.reset({ displayName: p.displayName ?? '' }, { emitEvent: false });
           this.form.markAsPristine();
         },
-        error: () => this.snack.open('Failed to load profile', 'Close', { duration: 3000 }),
+        error: () => this.toast.error('Failed to load profile'),
       });
   }
 
   get initials(): string {
-    const name = String(this.form.value?.displayName || '').trim();
-    if (name.length >= 2) {
-      const parts = name.split(/\s+/).filter(Boolean);
-      const first = parts[0]?.[0] ?? '';
-      const second = parts.length > 1 ? (parts[1]?.[0] ?? '') : (parts[0]?.[1] ?? '');
-      return (first + second).toUpperCase();
-    }
-    const email = this.profile?.email ?? '';
-    return email.slice(0, 2).toUpperCase();
+    return getInitials(this.form.value?.displayName, this.profile?.email);
   }
 
   get avatarSrc(): string | null {
@@ -118,11 +136,11 @@ export class ProfilePage implements OnInit, OnDestroy {
       .subscribe({
         next: (updated) => {
           this.profile = updated;
-          this.snack.open('Avatar updated', 'Close', { duration: 2500 });
+          this.toast.success('Avatar updated!');
         },
         error: (err) => {
           const msg = err?.error?.message || 'Avatar upload failed';
-          this.snack.open(msg, 'Close', { duration: 3500 });
+          this.toast.error(msg);
         },
       });
   }
@@ -140,12 +158,29 @@ export class ProfilePage implements OnInit, OnDestroy {
         next: (updated) => {
           this.profile = updated;
           this.form.markAsPristine();
-          this.snack.open('Profile updated', 'Close', { duration: 2500 });
+          this.toast.success('Profile updated!');
         },
         error: (err) => {
           const msg = err?.error?.message || 'Could not update profile';
-          this.snack.open(msg, 'Close', { duration: 3500 });
+          this.toast.error(msg);
         },
       });
+  }
+
+  resendingEmail = false;
+
+  resendVerification(): void {
+    this.resendingEmail = true;
+
+    this.authService.resendVerification().subscribe({
+      next: () => {
+        this.resendingEmail = false;
+        this.toast.success('Verification email sent! Check your inbox.');
+      },
+      error: (err) => {
+        this.resendingEmail = false;
+        this.toast.error(err.error?.message || 'Failed to send email');
+      },
+    });
   }
 }

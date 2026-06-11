@@ -15,7 +15,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 
 @NgModule({
-  declarations: [ProfilePage],
   imports: [
     CommonModule,
     ReactiveFormsModule,

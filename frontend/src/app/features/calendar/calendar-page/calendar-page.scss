@@ -1,0 +1,262 @@
+.calendar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Header
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.calendar-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.today-btn {
+  min-width: 72px;
+  font-size: 13px;
+}
+
+// Weekday row
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 2px;
+}
+
+.weekday-header {
+  text-align: center;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+// Grid
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  background: #e5e7eb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+// Day cell
+.calendar-day {
+  background: white;
+  min-height: 120px;
+  padding: 8px 6px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.12s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  &.other-month {
+    background: #fafafa;
+
+    .day-number span {
+      color: #d1d5db;
+    }
+  }
+}
+
+// Day number
+.day-number {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+
+  span:last-child {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.today-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 700;
+    }
+  }
+}
+
+.add-task-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: #667eea;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+  white-space: nowrap;
+
+  .calendar-day:hover & {
+    opacity: 1;
+  }
+}
+
+// Task chips
+.day-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.task-chip {
+  padding: 2px 4px 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  line-height: 1.5;
+
+  &:hover {
+    opacity: 0.85;
+    transform: translateX(1px);
+
+    .task-chip-delete {
+      opacity: 1;
+    }
+  }
+
+  &.chip-todo {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  &.chip-in-progress {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  &.chip-high {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  &.chip-done {
+    background: #d1fae5;
+    color: #059669;
+    text-decoration: line-through;
+    opacity: 0.65;
+  }
+}
+
+.task-chip-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.task-chip-delete {
+  flex-shrink: 0;
+  opacity: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 1px;
+  color: inherit;
+  border-radius: 2px;
+  transition: opacity 0.12s ease, background 0.12s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.15);
+  }
+}
+
+.task-overflow {
+  font-size: 11px;
+  color: #9ca3af;
+  padding: 1px 6px;
+  font-weight: 500;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .calendar-day {
+    min-height: 72px;
+    padding: 4px 3px;
+  }
+
+  .day-number span {
+    font-size: 11px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .task-chip {
+    font-size: 9px;
+    padding: 1px 3px;
+  }
+
+  .calendar-title {
+    font-size: 18px;
+  }
+
+  .weekday-header {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-chip {
+    display: none;
+  }
+
+  .day-tasks::before {
+    content: attr(data-count);
+  }
+
+  .calendar-day.has-tasks .day-number span {
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 1px;
+      right: 1px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #667eea;
+    }
+  }
+}

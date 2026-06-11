@@ -1,17 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-
-import { MatListModule } from '@angular/material/list';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from '../../../core/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -19,37 +15,32 @@ import { FormsModule } from '@angular/forms';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatListModule,
-    MatCheckboxModule,
     MatButtonModule,
-    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSnackBarModule,
-    FormsModule
+    FormsModule,
+    RouterLink,
   ],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
 export class Register {
-
+  displayName = '';
   email = '';
   password = '';
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private toast: ToastService,
+  ) {}
 
-  // register.component.ts
   submit() {
-    this.auth.register(this.email, this.password).subscribe({
+    this.auth.register(this.email, this.password, this.displayName).subscribe({
       next: () => {
-        // Do NOT auto-login → redirect to login page
-        this.router.navigate(['/auth/login'], {
-          queryParams: { registered: 'true' } // optional flag
-        });
+        this.router.navigate(['/auth/login'], { queryParams: { registered: 'true' } });
       },
-      error: () => alert('Could not register'),
+      error: (err) => this.toast.error(err?.error?.message || 'Registration failed'),
     });
   }
-
-
 }

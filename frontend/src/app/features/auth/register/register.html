@@ -4,6 +4,11 @@
 
     <form (ngSubmit)="submit()" class="space-y-4">
       <mat-form-field appearance="fill" class="w-full">
+        <mat-label>Display Name</mat-label>
+        <input matInput [(ngModel)]="displayName" name="displayName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="w-full">
         <mat-label>Email</mat-label>
         <input matInput [(ngModel)]="email" name="email" required />
       </mat-form-field>
@@ -20,11 +25,7 @@
 
     <p class="mt-4 text-sm text-slate-500">
       Have already an account ?
-      <a
-        href="/auth/login"
-        class="text-blue-600 hover:underline cursor-pointer">
-        Login
-      </a>
+      <a routerLink="/auth/login" class="text-blue-600 hover:underline cursor-pointer">Login</a>
     </p>
 
   </div>

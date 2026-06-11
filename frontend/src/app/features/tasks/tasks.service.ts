@@ -3,13 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Task } from './tasks.model';
 import { CreateTaskPayload } from './tasks.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
   private http = inject(HttpClient);
-
-  // adjust if you have a different base in environment.ts
-  private baseUrl = 'http://localhost:4000/api/tasks';
+  private baseUrl = `${environment.apiBase}/tasks`;
 
   getTasks(): Observable<Task[]> {
     return this.http.get<Task[]>(this.baseUrl);

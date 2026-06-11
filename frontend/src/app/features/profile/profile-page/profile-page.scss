@@ -105,6 +105,18 @@
 .upload-btn {
   border-radius: 999px;
   padding: 6px 14px;
+  border: 1px solid #cbd5e1 !important; /* gray border like others */
+  background-color: transparent !important;
+  color: #475569 !important; /* gray text by default */
+  transition: all 0.2s ease !important;
+}
+
+.upload-btn:hover:not([disabled]) {
+  background-color: #eff6ff !important; /* blue-50 background */
+  border-color: #60a5fa !important; /* blue-400 border */
+  color: #2563eb !important; /* blue-600 text */
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.15) !important; /* blue shadow */
+  transform: translateY(-1px);
 }
 
 .upload-hint {
@@ -118,77 +130,132 @@
 
 /* constrain the form width so it doesn't look ridiculous */
 .form-grid {
-  max-width: 720px; /* adjust 640–800 to taste */
+  max-width: 600px;
 }
 
 .form-field {
   width: 100%;
-  max-width: 720px; /* keep it consistent */
+  max-width: 600px;
 }
 
-/* Pretty input like Tasks */
+/* ============================================================
+   FIX: Force clean border rendering by overriding Material's
+   notched outline system which can glitch/render poorly
+   ============================================================ */
+
+/* Base field styling - clean solid border instead of notched outline */
 :host ::ng-deep .pretty-field .mdc-text-field--outlined {
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   background: #ffffff !important;
+  /* Force hardware acceleration to prevent rendering glitches */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-/* Softer outline */
+/* CRITICAL FIX: Hide the glitchy notched outline parts */
 :host ::ng-deep .pretty-field .mdc-notched-outline__leading,
 :host ::ng-deep .pretty-field .mdc-notched-outline__notch,
 :host ::ng-deep .pretty-field .mdc-notched-outline__trailing {
-  border-color: #e2e8f0 !important; /* slate-200 */
+  border: none !important; /* Remove the glitchy borders */
 }
 
-/* On hover */
-:host ::ng-deep .pretty-field .mdc-text-field--outlined:hover
-  .mdc-notched-outline__leading,
-:host ::ng-deep .pretty-field .mdc-text-field--outlined:hover
-  .mdc-notched-outline__notch,
-:host ::ng-deep .pretty-field .mdc-text-field--outlined:hover
-  .mdc-notched-outline__trailing {
-  border-color: #cbd5e1 !important; /* slate-300 */
+/* Create our own clean, solid border */
+:host ::ng-deep .pretty-field .mdc-text-field--outlined {
+  border: 1.5px solid #e2e8f0 !important;
+  transition: border-color 0.2s ease !important;
 }
 
-/* On focus */
-:host ::ng-deep .pretty-field .mdc-text-field--focused
-  .mdc-notched-outline__leading,
-:host ::ng-deep .pretty-field .mdc-text-field--focused
-  .mdc-notched-outline__notch,
-:host ::ng-deep .pretty-field .mdc-text-field--focused
-  .mdc-notched-outline__trailing {
-  border-color: #2563eb !important; /* blue-600-ish */
+/* Hover state - clean border */
+:host ::ng-deep .pretty-field .mdc-text-field--outlined:hover:not(.mdc-text-field--focused) {
+  border-color: #cbd5e1 !important;
+}
+
+/* Focus state - clean blue border */
+:host ::ng-deep .pretty-field .mdc-text-field--focused.mdc-text-field--outlined {
+  border-color: #3b82f6 !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Prevent the notched outline from interfering */
+:host ::ng-deep .pretty-field .mdc-notched-outline {
+  display: none !important; /* Completely hide the problematic notched outline */
+}
+
+/* Error state border */
+:host ::ng-deep .pretty-field.mat-form-field-invalid .mdc-text-field--outlined {
+  border-color: #ef4444 !important;
+}
+
+/* Disabled state */
+:host ::ng-deep .pretty-field .mdc-text-field--outlined.mdc-text-field--disabled {
+  border-color: #e2e8f0 !important;
+  background: #f8fafc !important;
+  opacity: 0.6;
 }
 
 /* More pleasant padding/height */
 :host ::ng-deep .pretty-field .mdc-text-field {
-  padding: 6px 12px !important;
+  padding: 10px 16px !important;
+  min-height: 56px !important;
 }
 
 /* Input text */
 :host ::ng-deep .pretty-field input.mdc-text-field__input {
-  font-size: 14px !important;
-  color: #0f172a !important; /* slate-900 */
+  font-size: 15px !important;
+  color: #0f172a !important;
+  line-height: 1.5 !important;
+  padding: 0 !important; /* Remove extra padding since we control it on the container */
 }
 
-/* Label positioning / color */
+/* Label - needs to be repositioned since we're using solid border */
 :host ::ng-deep .pretty-field .mdc-floating-label {
-  color: #64748b !important; /* slate-500 */
+  color: #64748b !important;
+  font-size: 14px !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: transparent !important;
+  padding: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Label when floated */
+:host ::ng-deep .pretty-field .mdc-floating-label--float-above {
+  transform: translateY(-36px) scale(0.85) !important;
+  left: 12px !important;
+  background: white !important;
+  padding: 0 4px !important;
+}
+
+/* Label on focus */
+:host ::ng-deep .pretty-field .mdc-text-field--focused .mdc-floating-label {
+  color: #3b82f6 !important;
 }
 
 /* Hint */
 :host ::ng-deep .pretty-field .mat-mdc-form-field-hint {
   color: #64748b !important;
+  font-size: 13px !important;
+  margin-top: 4px !important;
 }
 
 /* Error */
 :host ::ng-deep .pretty-field .mat-mdc-form-field-error {
-  color: #dc2626 !important; /* red-600 */
+  color: #dc2626 !important;
+  font-size: 13px !important;
 }
 
+/* Fix subscript wrapper spacing */
+:host ::ng-deep .pretty-field .mat-mdc-form-field-subscript-wrapper {
+  margin-top: 6px !important;
+}
 
 /* actions row */
 .form-actions {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -197,20 +264,102 @@
 /* pill buttons that match Tasks vibe */
 .pill {
   border-radius: 9999px !important;
-  padding: 6px 18px !important;
+  padding: 8px 20px !important;
   font-weight: 600 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.01em !important;
+  transition: all 0.2s ease !important;
 }
 
-/* primary pill: use Material primary color but keep pill shape */
+/* primary pill: gray outlined by default, green on hover (matching Reset structure) */
 .pill-primary {
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.18) !important;
+  background-color: transparent !important;
+  color: #475569 !important; /* slate-600 - same gray as Reset */
+  border: 1px solid #cbd5e1 !important; /* same gray border as Reset */
+  box-shadow: none !important; /* no shadow by default */
 }
 
-/* neutral pill for Reset */
+.pill-primary:hover:not([disabled]) {
+  background-color: #f0fdf4 !important; /* green-50 background */
+  border-color: #4ade80 !important; /* green-400 border */
+  color: #16a34a !important; /* green-600 text */
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.15) !important; /* green shadow */
+  transform: translateY(-1px);
+}
+
+/* neutral pill for Reset - red theme like Save changes */
 .pill-neutral {
   border-color: #cbd5e1 !important;
+  color: #475569 !important; /* slate-600 for text */
+}
+
+.pill-neutral:hover:not([disabled]) {
+  background-color: #fef2f2 !important; /* red-50 background */
+  border-color: #f87171 !important; /* red-400 border */
+  color: #dc2626 !important; /* red-600 text */
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.15) !important; /* red shadow like primary */
+  transform: translateY(-1px); /* same lift effect */
 }
 
 :host ::ng-deep .mat-mdc-form-field-outline {
   color: #cbd5e1 !important;
+}
+
+.verification-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fbbf24;
+  border-radius: 12px;
+  margin-bottom: 24px;
+
+  .banner-icon {
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #d97706;
+    }
+  }
+
+  .banner-content {
+    flex: 1;
+
+    .banner-title {
+      margin: 0 0 4px 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #92400e;
+    }
+
+    .banner-text {
+      margin: 0;
+      font-size: 13px;
+      color: #78350f;
+      line-height: 1.4;
+    }
+  }
+
+  .resend-button {
+    flex-shrink: 0;
+    border-color: #d97706;
+    color: #d97706;
+
+    &:hover {
+      background: rgba(217, 119, 6, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .verification-banner {
+    flex-direction: column;
+    text-align: center;
+  }
 }
