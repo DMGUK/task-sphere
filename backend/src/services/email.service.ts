@@ -1,6 +1,8 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { config } from '../config';
 import { verificationEmailHtml, passwordResetEmailHtml } from '../templates/verification-email';
+
+const resend = new Resend(config.email.resendApiKey);
 
 interface EmailOptions {
   to: string;
@@ -8,77 +10,38 @@ interface EmailOptions {
   html: string;
 }
 
-class EmailService {
-  private transporter: nodemailer.Transporter;
+async function sendEmail(options: EmailOptions): Promise<void> {
+  const { error } = await resend.emails.send({
+    from: config.email.from,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+  });
 
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: config.email.host,
-      port: config.email.port,
-      secure: config.email.secure,
-      auth: config.email.auth.user
-        ? {
-            user: config.email.auth.user,
-            pass: config.email.auth.pass,
-          }
-        : undefined,
-    });
-
-    // Verify connection
-    this.transporter.verify((error) => {
-      if (error) {
-        console.error('Email service connection error:', error);
-      } else {
-        console.log('✅ Email service ready');
-      }
-    });
+  if (error) {
+    console.error('❌ Error sending email:', error);
+    throw new Error('Failed to send email');
   }
 
-  /**
-   * Send email
-   */
-  async sendEmail(options: EmailOptions): Promise<void> {
-    try {
-      const info = await this.transporter.sendMail({
-        from: config.email.from,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        text: this.stripHtml(options.html),
-      });
+  console.log(`📧 Email sent to ${options.to}`);
+}
 
-      console.log(`📧 Email sent to ${options.to}: ${info.messageId}`);
-    } catch (error) {
-      console.error('❌ Error sending email:', error);
-      throw new Error('Failed to send email');
-    }
-  }
-
-  /**
-   * Send verification email
-   */
+export const emailService = {
   async sendVerificationEmail(email: string, token: string, userName?: string): Promise<void> {
     const verificationUrl = `${config.frontendUrl}/auth/verify-email?token=${token}`;
-    await this.sendEmail({
+    await sendEmail({
       to: email,
       subject: '✉️ Verify Your Email - TaskSphere',
       html: verificationEmailHtml(userName, verificationUrl),
     });
-  }
+  },
 
   async sendPasswordResetEmail(email: string, token: string, userName?: string): Promise<void> {
     const resetUrl = `${config.frontendUrl}/auth/reset-password?token=${token}`;
-    await this.sendEmail({
+    await sendEmail({
       to: email,
       subject: '🔐 Reset Your Password - TaskSphere',
       html: passwordResetEmailHtml(userName, resetUrl),
     });
-  }
-
-  private stripHtml(html: string): string {
-    return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-  }
-}
-
-// Export singleton instance
-export const emailService = new EmailService();
+  },
+};

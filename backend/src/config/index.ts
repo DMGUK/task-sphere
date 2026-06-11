@@ -11,14 +11,8 @@ export const config = {
   
   // Email
   email: {
-    host: process.env.EMAIL_HOST || 'localhost',
-    port: parseInt(process.env.EMAIL_PORT || '1025'),
-    secure: false, // true for 465, false for other ports
-    from: process.env.EMAIL_FROM || 'TaskSphere <noreply@tasksphere.com>',
-    auth: {
-      user: process.env.EMAIL_USER || '',
-      pass: process.env.EMAIL_PASS || '',
-    },
+    resendApiKey: process.env.RESEND_API_KEY || '',
+    from: process.env.EMAIL_FROM || 'TaskSphere <onboarding@resend.dev>',
   },
   
   // Frontend
