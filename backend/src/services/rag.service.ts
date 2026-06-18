@@ -18,3 +18,15 @@ export function ragIndexNote(id: number, title: string, content: string | null, 
 export function ragDeleteNote(id: number) {
   fireAndForget(fetch(`${RAG_BASE_URL}/embed/${id}`, { method: 'DELETE' }));
 }
+
+export async function ragReindexAll(notes: { id: number; title: string; content: string | null; userId: number }[]) {
+  await Promise.all(
+    notes.map(n =>
+      fetch(`${RAG_BASE_URL}/embed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note_id: String(n.id), title: n.title, content: n.content ?? '', user_id: String(n.userId) }),
+      }).catch(err => console.error(`[rag] reindex error for note ${n.id}:`, err))
+    )
+  );
+}
