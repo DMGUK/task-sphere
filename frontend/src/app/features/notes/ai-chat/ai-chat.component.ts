@@ -1,4 +1,4 @@
-import { Component, signal, inject, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { Component, signal, inject, ElementRef, ViewChild, AfterViewChecked, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,11 +24,13 @@ export class AiChatComponent implements AfterViewChecked {
   private tokenStorage = inject(TokenStorageService);
 
   @ViewChild('messagesEl') private messagesEl!: ElementRef<HTMLDivElement>;
+  @Output() noteCreated = new EventEmitter<void>();
 
   isOpen = signal(false);
   messages = signal<Message[]>([]);
   question = '';
   sending = signal(false);
+  syncing = signal(false);
 
   toggle(): void {
     this.isOpen.update(v => !v);
@@ -47,13 +49,47 @@ export class AiChatComponent implements AfterViewChecked {
     el.style.height = Math.min(el.scrollHeight, 100) + 'px';
   }
 
+  async syncNotes(): Promise<void> {
+    if (this.syncing()) return;
+    this.syncing.set(true);
+    const token = this.tokenStorage.get();
+    try {
+      const res = await fetch(`${environment.apiBase}/notes/reindex`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const data = await res.json();
+      this.messages.update(msgs => [...msgs, {
+        role: 'assistant',
+        text: res.ok
+          ? `Synced ${data.count} note${data.count !== 1 ? 's' : ''} to AI. You can now ask about all of them.`
+          : 'Sync failed — try again.',
+      }]);
+    } catch {
+      this.messages.update(msgs => [...msgs, { role: 'assistant', text: 'Sync failed — try again.' }]);
+    } finally {
+      this.syncing.set(false);
+    }
+  }
+
   async send(): Promise<void> {
-    const q = this.question.trim();
-    if (!q || this.sending()) return;
+    const raw = this.question.trim();
+    if (!raw || this.sending()) return;
 
     this.question = '';
     this.sending.set(true);
-    this.messages.update(msgs => [...msgs, { role: 'user', text: q }]);
+
+    // /note command — create a note
+    if (raw.startsWith('/note')) {
+      await this.handleNoteCommand(raw);
+      this.sending.set(false);
+      return;
+    }
+
+    this.messages.update(msgs => [...msgs, { role: 'user', text: raw }]);
     this.messages.update(msgs => [...msgs, { role: 'assistant', text: '', streaming: true }]);
 
     const token = this.tokenStorage.get();
@@ -64,7 +100,7 @@ export class AiChatComponent implements AfterViewChecked {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ question: q, top_k: 5 }),
+        body: JSON.stringify({ question: raw, top_k: 5 }),
       });
 
       if (!res.ok) {
@@ -90,8 +126,7 @@ export class AiChatComponent implements AfterViewChecked {
             this.setStreaming(false);
           } else if (!payload.startsWith('[SOURCES]')) {
             try {
-              const token = JSON.parse(payload) as string;
-              this.appendToLast(token);
+              this.appendToLast(JSON.parse(payload) as string);
             } catch { /* ignore malformed events */ }
           }
         }
@@ -101,6 +136,41 @@ export class AiChatComponent implements AfterViewChecked {
     } finally {
       this.sending.set(false);
       this.setStreaming(false);
+    }
+  }
+
+  private async handleNoteCommand(raw: string): Promise<void> {
+    const body = raw.slice('/note'.length).trimStart();
+    const nlIdx = body.indexOf('\n');
+    const title = (nlIdx === -1 ? body : body.slice(0, nlIdx)).trim();
+    const content = nlIdx === -1 ? '' : body.slice(nlIdx + 1).trim();
+
+    this.messages.update(msgs => [...msgs, { role: 'user', text: raw }]);
+
+    if (!title) {
+      this.messages.update(msgs => [...msgs, { role: 'assistant', text: 'Usage: /note Title\nOptional content here…' }]);
+      return;
+    }
+
+    const token = this.tokenStorage.get();
+    try {
+      const res = await fetch(`${environment.apiBase}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ title, content: content || null, color: '#ffffff' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      this.messages.update(msgs => [...msgs, {
+        role: 'assistant',
+        text: `Note "${data.title}" created and synced to AI. You can now ask about it.`,
+      }]);
+      this.noteCreated.emit();
+    } catch (err: any) {
+      this.messages.update(msgs => [...msgs, { role: 'assistant', text: `Failed to create note: ${err.message}` }]);
     }
   }
 
@@ -125,7 +195,9 @@ export class AiChatComponent implements AfterViewChecked {
   private setStreaming(streaming: boolean): void {
     this.messages.update(msgs => {
       const copy = [...msgs];
-      copy[copy.length - 1] = { ...copy[copy.length - 1], streaming };
+      if (copy.length && copy[copy.length - 1].role === 'assistant') {
+        copy[copy.length - 1] = { ...copy[copy.length - 1], streaming };
+      }
       return copy;
     });
   }

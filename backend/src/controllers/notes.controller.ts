@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
-import { ragIndexNote, ragDeleteNote } from '../services/rag.service';
+import { ragIndexNote, ragDeleteNote, ragReindexAll } from '../services/rag.service';
 
 interface AuthRequest extends Request {
   user: { id: number };
@@ -66,6 +66,18 @@ export const updateNote = async (req: AuthRequest, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to update note' });
+  }
+};
+
+// POST /api/notes/reindex
+export const reindexNotes = async (req: AuthRequest, res: Response) => {
+  try {
+    const notes = await prisma.note.findMany({ where: { userId: req.user.id } });
+    await ragReindexAll(notes.map(n => ({ id: n.id, title: n.title, content: n.content, userId: n.userId })));
+    res.json({ message: `Reindexing ${notes.length} notes.`, count: notes.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to reindex notes' });
   }
 };
 

@@ -12,15 +12,27 @@
   <div class="ai-panel">
     <div class="ai-panel-header">
       <span>Ask AI about your notes</span>
-      <button mat-icon-button (click)="toggle()">
-        <mat-icon>close</mat-icon>
-      </button>
+      <div class="header-actions">
+        <button
+          mat-icon-button
+          matTooltip="Sync all notes to AI"
+          matTooltipPosition="below"
+          [disabled]="syncing()"
+          (click)="syncNotes()">
+          <mat-icon>sync</mat-icon>
+        </button>
+        <button mat-icon-button (click)="toggle()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
     </div>
 
     <div class="ai-messages" #messagesEl>
       @if (messages().length === 0) {
         <p class="ai-empty">
-          Ask anything about your notes — "summarise my notes", "what tasks did I mention?"
+          Ask anything — "summarise my notes", "what tasks did I mention?"<br><br>
+          Tip: Use <code>/note Title</code> to create a note from here.<br>
+          Use the <mat-icon class="inline-icon">sync</mat-icon> button to index existing notes.
         </p>
       }
       @for (msg of messages(); track $index) {
@@ -35,7 +47,7 @@
         [(ngModel)]="question"
         (keydown)="handleKeydown($event)"
         (input)="autoResize($event)"
-        placeholder="Ask about your notes…"
+        placeholder="Ask about your notes… or /note Title"
         rows="1"
         [disabled]="sending()">
       </textarea>
