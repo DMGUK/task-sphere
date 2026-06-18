@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
+import { ragIndexNote, ragDeleteNote } from '../services/rag.service';
 
 interface AuthRequest extends Request {
   user: { id: number };
@@ -35,6 +36,7 @@ export const createNote = async (req: AuthRequest, res: Response) => {
         userId: req.user.id,
       },
     });
+    ragIndexNote(note.id, note.title, note.content, req.user.id);
     res.status(201).json(note);
   } catch (err) {
     console.error(err);
@@ -59,6 +61,7 @@ export const updateNote = async (req: AuthRequest, res: Response) => {
         color:   color   ?? existing.color,
       },
     });
+    ragIndexNote(note.id, note.title, note.content, req.user.id);
     res.json(note);
   } catch (err) {
     console.error(err);
@@ -74,6 +77,7 @@ export const deleteNote = async (req: AuthRequest, res: Response) => {
 
   try {
     await prisma.note.delete({ where: { id } });
+    ragDeleteNote(id);
     res.status(204).end();
   } catch (err) {
     console.error(err);
