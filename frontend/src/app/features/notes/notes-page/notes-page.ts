@@ -7,13 +7,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { Note } from '../notes.model';
 import { NotesService } from '../notes.service';
 import { NoteDialogComponent } from '../note-dialog/note-dialog';
+import { AiChatComponent } from '../ai-chat/ai-chat.component';
 import { ToastService } from '../../../core/toast.service';
 import { FormatDatePipe } from '../../../shared/format-date.pipe';
 
 @Component({
   selector: 'app-notes-page',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, FormatDatePipe],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule, FormatDatePipe, AiChatComponent],
   templateUrl: './notes-page.html',
   styleUrls: ['./notes-page.scss']
 })
