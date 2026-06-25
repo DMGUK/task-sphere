@@ -2,12 +2,15 @@ module.exports = {
   content: ["./src/**/*.{html,ts}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'],
+      },
       colors: {
         brand: {
-          bg: "#f4f6fb",
+          bg: "#f8fafc",
           surface: "#ffffff",
-          primary: "#1d3557", // dark navy
-          accent: "#457b9d",
+          primary: "#4f46e5",
+          accent: "#6366f1",
         },
       },
     },
