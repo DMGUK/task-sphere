@@ -21,12 +21,28 @@
   border: 1px solid #e2e8f0;
   min-height: 500px;
   max-height: calc(100vh - 280px);
+  transition: box-shadow 0.2s ease;
+
+  &:has(.status-icon-todo) .column-header {
+    border-top: 3px solid #94a3b8;
+    border-radius: 16px 16px 0 0;
+  }
+
+  &:has(.status-icon-in_progress) .column-header {
+    border-top: 3px solid #f59e0b;
+    border-radius: 16px 16px 0 0;
+  }
+
+  &:has(.status-icon-done) .column-header {
+    border-top: 3px solid #10b981;
+    border-radius: 16px 16px 0 0;
+  }
 }
 
 // Column header
 .column-header {
   padding: 1rem 1.25rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
   background: white;
   border-radius: 16px 16px 0 0;
 }
@@ -144,15 +160,15 @@
 .task-card {
   background: white;
   border-radius: 12px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #e8ecf2;
   padding: 0;
   cursor: grab;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
 
   &:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #c7d2fe;
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.1);
     transform: translateY(-2px);
   }
 

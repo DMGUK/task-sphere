@@ -1,32 +1,83 @@
-<div class="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-4">
-    <h2 class="text-xl font-semibold text-slate-800">Register</h2>
+<div class="auth-page">
 
-    <form (ngSubmit)="submit()" class="space-y-4">
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Display Name</mat-label>
-        <input matInput [(ngModel)]="displayName" name="displayName" />
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Email</mat-label>
-        <input matInput [(ngModel)]="email" name="email" required />
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="w-full">
-        <mat-label>Password</mat-label>
-        <input matInput [(ngModel)]="password" name="password" type="password" required />
-      </mat-form-field>
-
-      <button mat-raised-button color="primary" class="w-full" type="submit">
-        Register
-      </button>
-    </form>
-
-    <p class="mt-4 text-sm text-slate-500">
-      Have already an account ?
-      <a routerLink="/auth/login" class="text-blue-600 hover:underline cursor-pointer">Login</a>
-    </p>
-
+  <!-- Left: Brand Panel -->
+  <div class="auth-brand">
+    <div class="auth-brand-inner">
+      <div class="brand-logo">
+        <span class="material-icons brand-icon">task_alt</span>
+        <span class="brand-name">TaskSphere</span>
+      </div>
+      <h2 class="brand-headline">Get organized.<br>Ship more.</h2>
+      <p class="brand-desc">Join TaskSphere and take control of your work with a beautiful, modern task manager.</p>
+      <ul class="brand-features">
+        <li>
+          <span class="material-icons">view_kanban</span>
+          Kanban board with drag & drop
+        </li>
+        <li>
+          <span class="material-icons">calendar_today</span>
+          Calendar with due date tracking
+        </li>
+        <li>
+          <span class="material-icons">sticky_note_2</span>
+          Color-coded notes & reminders
+        </li>
+      </ul>
+    </div>
   </div>
+
+  <!-- Right: Form Panel -->
+  <div class="auth-form-panel">
+    <div class="auth-form-inner">
+      <div class="form-header">
+        <h1>Create your account</h1>
+        <p>Start organizing today — it's free</p>
+      </div>
+
+      <form (ngSubmit)="submit()">
+        <div class="auth-field">
+          <label for="reg-name">Display Name</label>
+          <input
+            id="reg-name"
+            type="text"
+            [(ngModel)]="displayName"
+            name="displayName"
+            placeholder="Your name"
+          />
+        </div>
+
+        <div class="auth-field">
+          <label for="reg-email">Email</label>
+          <input
+            id="reg-email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+          />
+        </div>
+
+        <div class="auth-field">
+          <label for="reg-password">Password</label>
+          <input
+            id="reg-password"
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Create a password"
+            required
+          />
+        </div>
+
+        <button type="submit" class="auth-submit" style="margin-top: 8px;">Create account</button>
+      </form>
+
+      <p class="auth-switch">
+        Already have an account?
+        <a routerLink="/auth/login">Sign in</a>
+      </p>
+    </div>
+  </div>
+
 </div>

@@ -20,7 +20,7 @@
 // Header
 .header {
   height: 64px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -39,9 +39,13 @@
 
 .logo {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.5px;
   cursor: default;
+  background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 // Navigation
@@ -223,7 +227,7 @@
 
   &.auth-link-primary {
     background: white;
-    color: #667eea;
+    color: #4f46e5;
 
     &:hover {
       background: rgba(255, 255, 255, 0.9);
@@ -240,6 +244,14 @@
 
   @media (min-width: 768px) {
     padding: 32px;
+  }
+
+  // Auth pages get full-bleed — no padding
+  &:has(app-login),
+  &:has(app-register) {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
   }
 }
 

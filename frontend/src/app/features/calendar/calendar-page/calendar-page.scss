@@ -102,7 +102,7 @@
     flex-shrink: 0;
 
     &.today-badge {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
       color: white;
       font-weight: 700;
     }
@@ -112,7 +112,7 @@
 .add-task-hint {
   font-size: 11px;
   font-weight: 500;
-  color: #667eea;
+  color: #6366f1;
   opacity: 0;
   transition: opacity 0.15s ease;
   pointer-events: none;
@@ -256,7 +256,7 @@
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      background: #667eea;
+      background: #6366f1;
     }
   }
 }
