@@ -17,6 +17,13 @@ export const config = {
   
   // Frontend
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
+
+  // Avatar storage (S3)
+  s3: {
+    region: process.env.AWS_REGION || 'eu-north-1',
+    bucket: process.env.AWS_S3_BUCKET || '',
+    publicUrlBase: process.env.AWS_S3_PUBLIC_URL || '',
+  },
   
   // Tokens
   verificationTokenExpiry: parseInt(

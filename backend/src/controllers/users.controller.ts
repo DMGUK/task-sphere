@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { USER_SAFE_SELECT } from '../config/db-selects';
-import { safeUnlink, avatarUrlToDiskPath } from '../utils/file';
+import { avatarKeyFor } from '../utils/file';
+import { uploadAvatar as uploadAvatarToS3, deleteAvatar, avatarUrlToKey } from '../services/s3.service';
 
 type AuthedRequest = Request & { user?: { id: number } };
 
@@ -76,7 +77,8 @@ export async function uploadAvatar(req: AuthedRequest, res: Response) {
 
   if (!current) return res.status(404).json({ message: 'User not found' });
 
-  const newAvatarUrl = `/uploads/avatars/${file.filename}`;
+  const key = avatarKeyFor(userId, file.originalname);
+  const newAvatarUrl = await uploadAvatarToS3(file.buffer, key, file.mimetype);
 
   const updated = await prisma.user.update({
     where: { id: userId },
@@ -84,10 +86,10 @@ export async function uploadAvatar(req: AuthedRequest, res: Response) {
     select: USER_SAFE_SELECT,
   });
 
-  // delete old local avatar
+  // delete old avatar from S3
   if (current.avatarUrl) {
-    const oldPath = avatarUrlToDiskPath(current.avatarUrl);
-    if (oldPath) await safeUnlink(oldPath);
+    const oldKey = avatarUrlToKey(current.avatarUrl);
+    if (oldKey) await deleteAvatar(oldKey);
   }
 
   return res.json(toPublicUser(updated));
